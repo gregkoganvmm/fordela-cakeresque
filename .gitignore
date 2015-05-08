@@ -3,3 +3,4 @@
 /Config/env.php
 /tmp/*
 /logs/*
+/composer.lock
