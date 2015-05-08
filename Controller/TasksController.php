@@ -30,15 +30,32 @@ class TasksController extends AppController
         $this->_queue('default','Friend',$function,array('Go','process','a','job',NOW));
     }
 
+    /**
+     * Default endpoint
+     */
     public function index()
     {
     	//$this->_queue('default','Friend','doSomething',array('Go','process','a','job',NOW));
     }
 
+    /**
+     * FileMover endpoint
+     * 
+     */ 
     public function upload($model = 'video') {
         if($this->request->is('post')) {
             $this->log($this->request->data,'job_post');
             $this->_queue('file_mover','FileMover','copyToS3',$params);
+        }
+    }
+
+    /**
+     * Analytics endpoint
+     */
+    public function analytics()
+    {
+        if($this->request->is('post')) {
+            $this->_queue('analytics','FileMover','copyToS3',$params);
         }
     }
 }

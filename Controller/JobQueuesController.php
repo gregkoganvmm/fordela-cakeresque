@@ -7,51 +7,17 @@ App::uses('AppController', 'Controller');
  */
 class JobQueuesController extends AppController 
 {
+	var $uses = array('JobQueue','JobQueueLog');
 
 	public $paginate = array(
-		'order' => array(
-		    'JobQueue.id' => 'desc'
-		)
+		'order' => array('JobQueue.id' => 'desc')
 	);
 
-	public function task_log($log = null)
+	public function task_log()
 	{
-		App::uses('Folder', 'Utility');
-		App::uses('File', 'Utility');
-
-		//$log_path = TMP.'logs'.DS.'php-resque-worker.log';
-		$log_path = TMP.'logs'.DS.'resque-2015-05-07.log';
-		$contents = array('Currently there are no logs to show');
-		if(file_exists($log_path)) {
-			$file = new File($log_path);
-			$contents = $file->read();
-			$contents = explode("\n", str_replace('*','',$contents));
-			$contents = array_reverse($contents);
-			$file->close();
-		}
-		$this->set('log', $contents);
-	}
-
-	/*public function job() {
-		$this->autoRender = false;
-		if( $this->request->is('post') ) {
-			$this->log($this->request->data,'post_data');
-		}
-	}*/
-
-	// MongoDB Test
-	public function test() 
-	{
-		$this->autoRender = false;
-		//debug('TEST1');
-
-		$this->SessionActivities = ClassRegistry::init('Analytics.SessionActivity');
-		$result = $this->SessionActivities->find('first',array('SessionActivity.id' => '4f611361476da9ec3fc4c2d3'));
-		echo '<pre>';
-		print_r($result);
-		echo '</pre>';
-		//debug($result);
-		die;
+		$this->paginate = array('order' => array('_id' => -1),'limit' => 50);
+		$logs = $this->paginate('JobQueueLog');
+		$this->set('logs', $logs);
 	}
 
 	public function login() 
