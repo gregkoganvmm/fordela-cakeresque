@@ -1,0 +1,43 @@
+10
+
+dir
+15227
+svn://daniel@source.fordela.com/vms/trunk/app/Plugin/Analytics
+svn://daniel@source.fordela.com/vms
+
+
+
+2012-08-07T22:06:51.045386Z
+15136
+zack
+has-props
+
+
+
+
+
+
+
+
+
+
+
+
+
+47eb07d7-5a07-4f1d-bf79-db2974363f9b
+
+Model
+dir
+
+webroot
+dir
+
+Console
+dir
+
+Controller
+dir
+
+View
+dir
+

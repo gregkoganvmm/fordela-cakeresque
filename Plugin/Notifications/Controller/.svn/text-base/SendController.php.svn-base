@@ -1,0 +1,930 @@
+<?php
+class SendController extends NotificationsAppController {
+	
+	var $uses = array('PlaylistItem', 'Client','Video','User','Playlist','PlaylistsUser', 'VideoAnnotation', 'Encoding.Profile','Analytics.Statistic','Encoding.EncodingJob', 'VideoMember','Membership');
+	var $allowedActions = array('watched_videos');
+	/**
+	 * components
+	 * 
+	 * @var unknown_type
+	 */
+	var $components = array('Email');
+
+	var $autoRender = false;
+	
+	var $templateVars = array(
+		'clientid'=>null,
+		'clientname'=>null,
+		'clientlogo'=>null
+	);
+
+	var $viewVars = array(
+	);
+
+	function beforeFilter(){
+		$this->Auth->allow();
+		$this->log($this->here,'notifications_send');
+	}
+
+	/**
+	 * Checked
+	 * Called From: vendors/shells/tasks/expiry_notifications
+	 * 
+	 * sends an email to a client listing all videos that are expiring in the next 5 days from playlists.
+	 * @param int client_id
+	 */
+	function playlist_items_expiry($client_id = 0){
+		$this->PlaylistItem->bindModel(array(
+  			'belongsTo'=>array(
+  				'Playlist',
+  			)
+  		));
+  		
+  		$this->PlaylistItem->Behaviors->attach('Containable');
+  		//Find all Videos expiring in 5 days or less until expired for this client.
+  		$conditions = array(
+			'PlaylistItem.end_date <'=>date("Y-m-d",strtotime("+5 days")),
+  			'Playlist.client_id'=>$client_id,
+  			'NOT'=>array(
+				'PlaylistItem.end_date <'=>date("Y-m-d")
+  			)
+		);
+		
+		$contain = array(
+			'Video' => array(
+				'fields'=>array('title')
+			),
+			'Playlist' =>array(
+				'fields'=>array('name','client_id','active')
+			)
+		);
+
+		$playlist_items = $this->PlaylistItem->find('all',array('conditions'=>$conditions, 'contain'=>$contain, 'fields'=>array('end_date')));
+		$viewVars = array();
+		//Loop through the playlist items add usefull information into a formated array
+		foreach($playlist_items as $playlist_item){
+			if($playlist_item['Playlist']['active'] != 0){
+				$client_info = $this->PlaylistItem->Playlist->Client->find('first', array('conditions'=>array('Client.id'=>$playlist_item['Playlist']['client_id']), 'recursive'=>0, 'fields'=>array('name','email','subdomain','date_format')));
+				$viewVars['client'] = $client_info['Client'];
+				$viewVars['playlists'][$playlist_item['Playlist']['name']]['playlist_id'] = $playlist_item['Playlist']['id'];
+				$viewVars['playlists'][$playlist_item['Playlist']['name']]['videos'][] = array('video'=>$playlist_item['Video']['title'],'end_date'=>$playlist_item['PlaylistItem']['end_date']);
+			}
+		}
+		
+		//Email
+		$this->_set_client($client_id);
+		$viewVars['templateVars'] = $this->templateVars;
+		$subject = 'You Have Videos Expiring Soon';
+		
+		$to=$client_info['Client']['email'];
+		
+		if(!empty($to) && !empty($viewVars)){
+			$this->_email($subject,null,$to,$from=null,$template='expiring_videos',$viewVars,$cc=null,$bcc=null,'default_old');
+		}
+	  }
+	
+	
+	
+	/**
+	 * Checked
+	 * Called From: encoder/notifications_controller-video
+	 * 
+	 * Sends An Email to User with Encoding Job Status
+	 * 
+	 * @param encoding_job_id
+	 */
+	function encoding_status($encoding_job_id,$thumb=null){
+		$this->log('Send Notification for job:'.$encoding_job_id,'encoding_status');
+		$this->EncodingJob->Behaviors->attach('Containable');
+		$contain = array(
+			'Video'=>array(
+				'fields'=>array('title','archive')
+				),
+			'Client'=>array(
+				'fields'=>array('id','name')
+				),
+			'EncodingProfile'=>array(
+				'fields'=>array('name')
+				)
+		);
+		
+		$conditions = array(
+			'EncodingJob.id'=>$encoding_job_id
+		);
+		
+		$encodingJob = $this->EncodingJob->find('first',array('conditions'=>$conditions, 'contain'=>$contain, 'fields'=>array('status','description','type')));
+				
+		$this->log($encodingJob,'encoding_status');
+				
+		$to='dev@fordela.com';		
+		
+		$viewVars = array();
+		if($encodingJob['EncodingJob']['type'] == 'Thumbnail' || !empty($thumb)){
+			$s = 'New Thumbnail Encoding Status';
+			$viewVars['profile'] = 'N/A';
+		}
+		else{
+			$s = 'New Video Encoding Status';
+			$viewVars['profile'] = $encodingJob['EncodingProfile']['name'];
+		}
+		if($encodingJob['EncodingJob']['status'] == 'Error'){
+			$description =  $encodingJob['EncodingJob']['description'];			
+			$subject = strtoupper(VMS_ENV).': Error-- '.$s;
+		}else{
+			$subject= strtoupper(VMS_ENV).': '.$s;
+			$description = 'Success';
+			
+		}
+		
+		$viewVars['clientid']	= $encodingJob['Client']['id'];
+		$viewVars['clientname']	= $encodingJob['Client']['name'];
+		$viewVars['name']	= $encodingJob['Video']['title'];
+		$viewVars['archive']	= $encodingJob['Video']['archive'];
+		$viewVars['type'] 	= $encodingJob['EncodingJob']['type'];
+		$viewVars['status']	= $encodingJob['EncodingJob']['status'];
+		$viewVars['description'] = $encodingJob['EncodingJob']['description'];
+
+		$this->_set_client($encodingJob['Client']['id']);
+		$viewVars['templateVars'] = $this->templateVars;
+		
+		$this->_email($subject,null,$to,$from=null,$template='status_video',$viewVars,$cc=null,$bcc=null,'default_old');
+	}
+	
+	/**
+	 * Called From: encoder/notifications_controller-encoding
+	 * 
+	 * Sends An Email to User with Thumb Job Status
+	 * 
+	 * @param video_id
+	 */
+	function thumb_status($encoding_job_id){
+		$this->EncodingJob->Behaviors->attach('Containable');
+		$contain = array(
+			'Video'=>array(
+				'fields'=>array('title','archive')
+				),
+			'Client'=>array(
+				'fields'=>array('id','name')
+				),
+			'EncodingProfile'=>array(
+				'fields'=>array('name')
+				)
+		);
+		
+		$conditions = array(
+			'EncodingJob.id'=>$encoding_job_id
+		);
+		
+		$encodingJob = $this->EncodingJob->find('first',array('conditions'=>$conditions, 'contain'=>$contain, 'fields'=>array('status','description')));
+				
+		$this->log($encodingJob,'encoding_status');
+				
+		$to='dev@fordela.com';		
+
+		if($encodingJob['EncodingJob']['status'] == 'Error'){
+			$description =  $encodingJob['EncodingJob']['description'];
+			$subject = strtoupper(VMS_ENV).': Error-- ScreenShot Notification';
+		}else{
+			$subject= strtoupper(VMS_ENV).': ScreenShot Notification';
+			$description = 'Success';
+			
+		}
+		$viewVars = array();
+		$viewVars['clientid']	= $encodingJob['Client']['id'];
+		$viewVars['clientname']	= $encodingJob['Client']['name'];
+		$viewVars['name']	= $encodingJob['Video']['title'];
+		$viewVars['archive']	= $encodingJob['Video']['archive'];
+		$viewVars['type'] = $encodingJob['EncodingProfile']['type'];
+		$viewVars['status']	= $encodingJob['EncodingJob']['status'];
+		$viewVars['description'] = $encodingJob['EncodingJob']['description'];
+
+		$this->_set_client($encodingJob['Client']['id']);
+		$viewVars['templateVars'] = $this->templateVars;
+		
+		$this->_email($subject,null,$to,$from=null,$template='status_thumb',$viewVars,$cc=null,$bcc=null,'default_old');
+	}
+	
+	/**
+	 * 
+	 * Called From: videos/add ; videos/upload
+	 * 
+	 * Sends An Email to Dev with info on highe user traffic
+	 * 
+	 * @param client_id
+	 */
+	function high_traffic($client_id,$count){
+		$to='dev@fordela.com';		
+		
+		$subject= 'A Client Has High Activity';
+
+		$viewVars = array();
+		$viewVars['count'] = $count;
+
+		$this->_set_client($client_id);
+		$viewVars['templateVars'] = $this->templateVars;
+		
+		$this->_email($subject,null,$to,$from=null,$template='high_traffic',$viewVars,$cc=null,$bcc=null,'default_old');
+	}
+	
+	/**
+	 * Checked
+	 * Called From : VideoController-uploader ; VideoController-add ; VideoController-capture
+	 * Sends an email when a video is uploaded to the system
+	 * @param int video_id
+	 * @param int user_id
+	 */
+	function new_video($video_id, $user_id)
+	{
+		$this->Video->recrsive = -1;
+		$video=$this->Video->read(array('client_id','title','archive'),$video_id);
+		$user_name = $this->User->field('name',array('id'=>$user_id));
+		
+		$subject= 'New Video Uploaded from VMS';
+		$to='dev@fordela.com';
+		$viewVars = array();
+		$viewVars['clientid'] = $video['Video']['client_id'];
+		$viewVars['userid'] = $user_id;
+		$viewVars['username'] = $user_name;
+		$viewVars['name'] = $video['Video']['title'];
+		$viewVars['archive'] = $video['Video']['archive'];
+			
+		$this->_set_client($video['Video']['client_id']);
+		$viewVars['templateVars'] = $this->templateVars;
+		
+		$this->_email($subject,null,$to,$from=null,$template='new_video',$viewVars,$cc=null,$bcc=null,'default_old');
+		
+		
+	}
+	
+	/**
+	 * Checked
+	 * Called From: playlist_controller-email
+	 * Sends an email telling a user they are now part of a playlist
+	 * 
+	 * @params through params array
+	 * @param 0 int playlist_id
+	 * @param 1 int client_id
+	 * @param 2 string subject
+	 * @param 3 string to
+	 * @param 4 string from
+	 * @param 5 string body
+	 
+	 */
+	function playlist_invite(){
+		$playlist_id = $this->params[0];
+		$client_id=$this->params[1];
+		$subject= '[Fordela] '.$this->params[2];
+		$to=$this->params[3];
+		$from = $this->params[4];
+		$bcc = $this->params[5];
+		$body=$this->params[6];
+		
+		
+		$user_name = $this->User->field('User.name',array('User.username'=>$to) );
+		$sender_name = $this->User->field('User.name',array('User.username'=>$from) );
+		$this->_set_client($client_id);
+		
+		if(empty($sender_name)){
+			$sender_name = $from;
+		}
+		
+		$url = 'players/playlist/'.$playlist_id;
+		$body = urldecode(nl2br($body));
+		
+		$playlist = $this->Playlist->read(null, $playlist_id);
+		$this->set('playlist',$playlist);
+		
+		$viewVars = array();
+		$viewVars['name'] = $user_name;
+		$viewVars['sender'] = $sender_name;
+		$viewVars['body'] = $body;
+		$viewVars['url'] = $url;
+		$viewVars['playlistName']	= $playlist['Playlist']['name'];
+		$viewVars['playlistIMG']	= $playlist['Playlist']['logo'];
+		$viewVars['templateVars'] = $this->templateVars;
+		
+		if(empty($from)){
+			$from = array('no-reply@fordela.com' => 'Fordela');
+		}
+		
+		$this->_email($subject, $body,$to,$from,$template='playlist_invite',$viewVars,$cc=null,$bcc);
+	}
+	
+	
+	/**
+	 * Called From: clients_controller-silent_post
+	 * Email when a transaction goes through
+	 * 
+	 * @param int client_id
+	 * @param int transaction_id
+	 */
+	function transaction($client_id,$transaction_id){
+		$this->_set_client($client_id);
+		$transaction = $this->Client->Subscription->SubscriptionTransaction->read(null,$transaction_id);
+		if(!empty($client_id)){
+			$email = $this->Client->field('email',array('id'=>$client_id));
+			$subject= 'Transaction Information for '.$transaction['company'];
+		}
+		else{
+			$email = null;
+			$subject = 'Manual Transaction';
+		}
+				
+		$to='dev@fordela.com';
+		$bcc=array('dev@fordela.com','sales@fordela.com');
+		
+		$viewVars = array();
+		$viewVars['clientid']	= $client_id;
+		$viewVars['first']	= $transaction['SubscriptionTransaction']['first_name'];
+		$viewVars['last']	= $transaction['SubscriptionTransaction']['last_name'];
+		$viewVars['username']	= $email;
+		$viewVars['subscription_id']	= $transaction['SubscriptionTransaction']['subscription_id'];
+		$viewVars['reason']	= $transaction['SubscriptionTransaction']['response_reason_text'];
+		
+		$this->_set_client($client_id);
+		$viewVars['templateVars'] = $this->templateVars;
+		
+		$this->_email($subject,null,$to,$from=null,$template='transaction',$viewVars,$cc=null,$bcc,'default_old');
+	}
+	
+	
+	/**
+	 * 
+	 * @param int client_id
+	 */
+	function missed_payment($client_id){
+	
+	}
+	
+	/**
+	 * 
+	 * @param int client_id
+	 */
+	function deactivation($client_id){
+	
+	}
+	
+	/**
+	 * Checked
+	 * Called From: VideoController-share
+	 * Sends an email when someone shares a video witha  user
+	 * @param int video_id
+	 * @param int user_id
+	 * @param string body
+	 */
+	function video_invite($video_id, $ver_id = null, $user_id, $body = null, $pass = false){	
+		$video = $this->Video->read(null,$video_id);
+		$user = $this->User->read(array('name','username','password'),$user_id);
+		$this->_set_client($video['Video']['client_id']);
+		
+		//$body = nl2br($body);
+		$subject = '[Fordela] You have a guest pass to '. $video['Video']['title'];
+		$to = $user['User']['username'];
+		$from = array('no-reply@fordela.com' => $this->templateVars['clientname'] );
+		$bcc = array('no-reply@fordela.com' => $this->templateVars['clientname'] );
+		
+		$viewVars = array();
+		
+			if(!empty($user['User']['name']) || $user['User']['name'] != ''){
+				$viewVars['name']	= $user['User']['name'];
+			}else{
+				$viewVars['name']	= $user['User']['first_name'];
+			}
+			
+		$viewVars['username']	= $user['User']['username'];
+		$viewVars['pass']	= $pass;
+		$viewVars['body']       =  urldecode(nl2br($body));
+		$viewVars['url']	= 'videos/preview/'.$video_id.'/'.$ver_id;
+		$viewVars['videoTitle'] = $video['Video']['title'];
+		$viewVars['videoThumb'] = $video['Video']['image1'];
+		$viewVars['templateVars'] = $this->templateVars;
+		
+		
+		
+		$this->_email($subject,null,$to,$from,$template='video_invite',$viewVars,$cc=null,$bcc);
+		
+	}
+	
+	/**
+	 * Checked
+	 * Called From: users_controller-playlist_register
+	 * sends emails when a user signs up with playlist register link
+	 * @param int client_id
+	 * @param int user_id
+	 */
+	function playlist_register($client_id, $user_id, $playlist_id, $pass = null){
+		
+		$user = $this->User->read(array('name','username','password', 'first_name'),$user_id);
+		$playlist = $this->Playlist->read(null, $playlist_id);
+		$this->set('playlist',$playlist);
+		$this->_set_client($client_id);
+		
+		$subject= '[Fordela] Your account information';
+		$to=$user['User']['username'];
+		$from =array('no-reply@fordela.com' => $this->templateVars['clientname'] );
+		
+		$viewVars = array();
+		$viewVars['clientName']	= $this->templateVars['clientname'];
+		
+			if(!empty($user['User']['name']) || $user['User']['name'] != ''){
+				$viewVars['name']	= $user['User']['name'];
+			}else{
+				$viewVars['name']	= $user['User']['first_name'];
+			}
+			
+		$viewVars['username']	= $user['User']['username'];
+		$viewVars['pass']	= $pass;
+		$viewVars['playlistID']	= $playlist['Playlist']['id'];
+		$viewVars['playlistName']	= $playlist['Playlist']['name'];
+		$viewVars['playlistIMG']	= $playlist['Playlist']['logo'];
+		$viewVars['templateVars'] = $this->templateVars;
+		
+		
+ 		
+		$this->_email($subject,null,$to,$from=null,$template='playlist_register',$viewVars,$cc=null,$bcc=null);																		
+	}
+	
+	/**
+	 * Checked
+	 * Called From: users_controller-email_password
+	 * Emails a user their username pass and subdomain
+	 * 
+	 * @param int client_id
+	 * @param int user_id
+	 */
+	
+	
+	function login_info($client_id, $user_id){
+		$user = $this->User->read(array('name','username','password'),$user_id);
+		$this->_set_client($client_id);
+		
+		$subject= 'Your account information';
+		$to=$user['User']['username'];
+		$from =array('no-reply@fordela.com' => $this->templateVars['clientname'] );
+		
+		$viewVars = array();
+		$viewVars['name']	= $user['User']['name'];
+		$viewVars['username']	= $user['User']['username'];
+		$viewVars['pass']	= $user['User']['password'];
+		$viewVars['templateVars'] = $this->templateVars;
+
+		$this->_email($subject,null,$to,$from=null,$template='login_info',$viewVars,$cc=null,$bcc=null,'default_old');
+	}
+	
+	/**
+	 * Checked
+	 * Called From: users_controller-email_password
+	 * Emails a user their username pass and subdomain
+	 * Depending upon the user status send different 
+	 * @param int client_id
+	 * @param int user_id
+	 * @param string user_status
+	 */
+	function add_user($client_id, $user_id, $user_status, $pass = null, $from = null){
+		//ADDED BY CHRIS, NEEDS REFACTORING
+		$user = $this->User->read(null,$user_id);
+		
+		$i = 0;
+		foreach($user['Client'] as $client){
+			if($client['id'] == $client_id){
+				$clientIndex = $i;
+			}
+			
+			$i++;
+		}
+		
+		$membership = $this->Membership->read(null,$user['Client'][$clientIndex]['Membership']['id']);
+		
+		$playlists = array();
+		foreach($membership['Playlist'] as $playlist){
+			$details['name'] = $playlist['name'];
+			$details['logo'] = $playlist['logo'];
+			$details['id'] = $playlist['id'];
+			$details['format'] = $playlist['format'];
+			$details['type'] = $playlist['type'];
+			array_push($playlists, $details);
+		}
+		
+		//ACTUAL FIELDS NEED FROM USER
+		//$user = $this->User->read(array('name','username','password', 'first_name'),$user_id);
+		//END CHRIS'S STUFF
+		
+		$this->_set_client($client_id);
+		$subject= $user_status == 'New' ? '[Fordela] Your account information' : '[Fordela] You have been added to a project';
+		$template = $user_status == 'New' ? 'add_new_user' : 'add_user';
+		$to=$user['User']['username'];
+		if(empty($from)){
+			$from =array('no-reply@fordela.com' => $this->templateVars['clientname'] );
+		}
+		else{
+			$from =array($from => $this->templateVars['clientname'] );
+		}
+		$viewVars = array();
+	
+			if(!empty($user['User']['name']) || $user['User']['name'] != ''){
+				$viewVars['name']	= $user['User']['name'];
+			}else{
+				$viewVars['name']	= $user['User']['first_name'];
+			}
+			
+		$viewVars['username']	= $user['User']['username'];
+		$viewVars['pass']	= $pass;
+		$viewVars['playlists']	= $playlists;
+		$viewVars['templateVars'] = $this->templateVars;
+		$this->_email($subject,null,$to,$from,$template,$viewVars,$cc=null,$bcc=null);
+	}
+	
+	
+	/**
+	 * Checked
+	 * Called From: clients_controller-freetrial ; clients_controller-signup ; clients_controller-admin_signup
+	 * Sends and email when a new client is added to the VMS
+	 * @param int client_id
+	 * @param int user_id
+	 */
+	function trial_notification($client_id, $user_id, $token, $pass = null, $package = null, $promo = null){
+			
+			$user = $this->User->read(array('name','username','password'),$user_id);
+		
+			$subject= CLIENT_SIGNUP_SUBJECT;
+			$to=$user['User']['username'];
+			
+			$bcc=array_merge(array('sales@fordela.com'),explode(',',CLIENT_BCC));
+			
+			$viewVars = array();
+			
+			if(!empty($user['User']['name']) || $user['User']['name'] != ''){
+				$viewVars['name']	= $user['User']['name'];
+			}else{
+				$viewVars['name']	= $user['User']['first_name'];
+			}
+			
+			$viewVars['username']	= $user['User']['username'];
+			$viewVars['pass']	= $pass;
+			$viewVars['package']    = $package;
+			$viewVars['promo']	= $promo;
+			$viewVars['token']	= $token;
+			
+			$this->_set_client($client_id);
+			$viewVars['templateVars'] = $this->templateVars;
+	
+			$this->_email($subject,null,$to,$from=null,$template='trial',$viewVars,$cc=null,$bcc,'default_trial');
+		
+		
+	}
+	
+	/**
+	 * Checked
+	 * Called From: video_annotations-add
+	 * Sends and email to designated user when an annotation is created for a playlist
+	 * 
+	 * @param int annotation_id
+	 */
+	function annotation($annotation_id){
+
+		//Email
+		$annotation = $this->VideoAnnotation->read(null, $annotation_id);
+		$subject = '[Fordela] New Video Comment for '.$annotation['Video']['title'];
+		$to = $annotation['Playlist']['annotations_email'];
+		$viewVars = array();
+		$viewVars['videoTitle']	= $annotation['Video']['title'];
+		$viewVars['username']	= $annotation['User']['username'];
+		$viewVars['playlistname'] = $annotation['Playlist']['name'];
+		$viewVars['annotation']	= $annotation['VideoAnnotation']['note'];
+		$viewVars['timecode']	= $annotation['VideoAnnotation']['time'];
+		$viewVars['playlistID']	= $annotation['Playlist']['id'];
+
+		$this->_set_client($annotation['Video']['client_id']);
+		$viewVars['templateVars'] = $this->templateVars;
+		
+		$this->_email($subject,null,$to,$from=null,$template='video_annotation',$viewVars,$cc=null,$bcc=null);
+		
+	}
+	
+	/**
+	 * Called From : Vendors/shells/tasks/required_notifications
+	 * Sends an email if required videos have not been watched
+	 * @param int user_id
+	 * @param int client_id
+	 */
+	function required_videos($user_id,$client_id){		
+		$requiredVideos = $this->User->getRequiredVideos($user_id,$client_id);
+
+		$requiredVideos = Set::extract('{n}.Video.id',$requiredVideos);
+		
+		$watchedVideos = $this->Statistic->getVideosWatched($user_id,$client_id);
+
+		$watchedVideos = Set::extract('{n}.Statistic.video_id',$watchedVideos);
+		
+		$unwatchedVideos = array_diff($requiredVideos,$watchedVideos);
+		
+		// send email if there are unwatched videos for user
+		if(!empty($unwatchedVideos)){
+			$output = ""; // create string of video titles
+			foreach($unwatchedVideos as $unwatchedVideo){
+				$video = $this->Video->field('title', array('id'=>$unwatchedVideo));
+				$output .= $video . '<br />';
+			}
+			
+			//Email
+			$username = $this->User->field('username', array('id'=>$user_id));		
+			$subject = 'You have unwatched videos';
+			$to = $username;
+			$viewVars = array();
+			$viewVars['unwatched'] = $output;
+			$viewVars['username']	= $username;
+			
+			$this->_set_client($client_id);
+			$viewVars['templateVars'] = $this->templateVars;
+			
+			$this->_email($subject,null,$to,$from=null,$template='unwatched_videos',$viewVars,$cc=null,$bcc=null,'default_old');
+		}
+	}
+	
+	/*
+	 * Sends an email to client on who watch videos for that day
+	 */
+	function videos_just_watched($client_id){
+		$today = date('Y-m-d');
+		$strToday = strtotime($today);
+		$yesterday = strtotime('-1 day',$strToday);
+		
+		$output = ''; // create string of video titles
+		$viewed = false; // False until there is a video
+		
+		
+		$conditions1 = array(
+			'Playlist.client_id'=>$client_id,
+			'Playlist.active'=>1,
+			'Playlist.notify_watched'=>1,
+			'Playlist.expiration_type <>'=>'playlist'
+		);
+		
+		$conditions2 = array(
+			'Playlist.client_id'=>$client_id,
+			'Playlist.active'=>1,
+			'Playlist.notify_watched'=>1,
+			'Playlist.expiration_type'=>'playlist',
+			array(
+				'OR'=>array(
+					'Playlist.end_date >=' => $today,
+					'Playlist.end_date' => null
+				)
+			)
+		);
+	
+		$pl1 = $this->Playlist->find('all',array('conditions'=>$conditions1));
+		$pl2 = $this->Playlist->find('all',array('conditions'=>$conditions2));
+		
+		$playlists = array_merge($pl1, $pl2);
+		
+		foreach($playlists as $playlist){
+			
+			$users = $this->PlaylistsUser->find('all',array('conditions'=>array('PlaylistsUser.playlist_id'=>$playlist['Playlist']['id'])));
+			// Loop through each user (does not include client contact) & determine if each video watched
+			foreach($users as $user){
+					$playlist_name = $this->Playlist->field('name',array('id'=>$playlist['Playlist']['id']));
+					$watchedVideos = $this->Statistic->getVideosWatched($user['PlaylistsUser']['user_id'],$client_id,true);
+					
+					if(!empty($watchedVideos[0])){
+						// Get video IDs watched today and start formating $output
+						$add_output = true;
+						foreach($watchedVideos as $watched){
+							$date = strtotime($watched['Statistic']['created']);
+							if($date >= $yesterday){
+								if($add_output == true){
+									$output .= '<h2>Playlist: '.$playlist_name.'</h2>';
+									$username = $this->User->field('name', array('id'=>$user['PlaylistsUser']['user_id']));
+									$output .= '<p>'.$username . ' watched:</p>';
+									$output .= '<ul>';
+									$add_output = false;
+								}
+								$viewed = true;
+								$video = $this->Video->field('title', array('id'=>$watched['Statistic']['video_id']));
+								$output .= '<li>'.$video . '</li>';
+							}
+						}
+						$output .= '</ul>';
+					}
+			}
+		}
+
+		// Send email if any videos have been viewed
+		if($viewed == true){
+			//Email
+			$client = $this->Client->field('email', array('id'=>$client_id));		
+			$subject = 'The following videos have been recently watched';
+			$to = (!empty($playlist['Playlist']['annotations_email'])) ? $playlist['Playlist']['annotations_email'] : $client;
+			$viewVars = array();
+			$viewVars['watched'] = $output;
+			$viewVars['client']	= $client;
+			
+			$this->_set_client($client_id);
+			$viewVars['templateVars'] = $this->templateVars;
+			
+			$this->_email($subject,null,$to,$from=null,$template='watched',$viewVars,$cc=null,$bcc=null,'default_old');
+		}
+	}
+	
+	/**
+	 * 
+	 * New notify watched
+	 */
+	function notify_video_watched($pt_data){
+		$playlist_array = unserialize(rawurldecode($pt_data));
+		$client_id = $playlist_array[0]['client_id'];
+		$playlist_id = $playlist_array[0]['playlist_id'];
+		$playlist_name = $this->Playlist->field('name', array('id' => $playlist_id));
+		
+		$output = '';
+		
+		foreach($playlist_array as $k => $d){
+			$this->Membership->contain('User.username');
+			$member = $this->Membership->read(null, $d['member_id']);
+			$video_title = $this->Video->field('title', array('id'=>$d['video_id']));
+			
+			$output .= '<p>'.$member['User']['username'].' recently watched <strong>'.$video_title.'</strong>.</p>';
+		}
+		
+		//Email addresses
+		$client_email = $this->Client->field('email', array('id'=>$client_id));
+		$pl_annotations_email = $this->Playlist->field('annotations_email', array('id'=>$playlist_id));
+		
+		$subject = 'Videos recently watched on playlist: '.$playlist_name;
+		
+		$to = (!empty($pl_annotations_email)) ? $pl_annotations_email : $client_email;
+		//$to = 'zack@fordela.com'; // for testing
+		
+		$viewVars = array();
+		$viewVars['watched'] = $output;
+		$viewVars['client']	= $client;
+		
+		$this->_set_client($client_id);
+		$viewVars['templateVars'] = $this->templateVars;
+		
+		$this->_email($subject,null,$to,$from=null,$template='watched',$viewVars,$cc=null,$bcc=null,'default_old');
+	}
+	
+	
+	/**
+	 * 
+	 * sets the Client name logo and id for the email template
+	 * 
+	 * @param int client_id
+	 */
+	function _set_client($client_id){
+		$vmsUrl =  'http';
+		$vmsUrl .=  (VMS_SSL) ?'s':null;		
+		if(!empty($client_id)){
+			$client = $this->Client->find('first',array('conditions'=>array('Client.id'=>$client_id),'fields'=>array('Client.name','Client.custom_logo', 'Client.subdomain','Client.date_format') ));
+			
+			$this->templateVars['clientid'] = $client_id;
+			$this->templateVars['clientname'] = $client['Client']['name'];
+			$this->templateVars['clientlogo'] = $client['Client']['custom_logo'];
+			$this->templateVars['subdomain'] = $client['Client']['subdomain'];
+			$this->templateVars['date_format'] = $client['Client']['date_format'];
+			
+			$vmsUrl .=  '://'.$client['Client']['subdomain'].'.'. SUBDOMAIN_URL_PREFIX;
+		
+			$this->templateVars['vmsUrl'] = $vmsUrl;
+		}
+		else{
+			$this->templateVars['clientid'] = null;
+			$this->templateVars['clientname'] = 'Fordela';
+			$this->templateVars['clientlogo'] = null;
+			$this->templateVars['subdomain'] = null;
+			$this->templateVars['date_format'] = 'm/d/y';
+			$vmsUrl .=  '://vms.'. SUBDOMAIN_URL_PREFIX;
+		
+			$this->templateVars['vmsUrl'] = $vmsUrl;
+		}
+		$this->set('templateVars',$this->templateVars);
+	}
+
+	/**
+	 * 
+	 * Enter description here ...
+	 * @param int $client_id
+	 * @param int $user_id
+	 * @param int $playlid_id
+	 * @param string $filename
+	 */
+	function batch_download($client_id, $user_id, $playlist_id, $filename){
+		App::import('Vendor', 'S3', array('file' => 'aws-sdk/sdk.class.php'));
+		$s3 = new AmazonS3();
+		$user = $this->User->read(array('name','username','password'),$user_id);
+		$this->_set_client($client_id);
+		$subject= 'Your batch download link.';
+		$to=$user['User']['username'];
+		$from =array('no-reply@fordela.com' => 'Fordela' );
+		
+		$viewVars = array();
+		$viewVars['name']	= $user['User']['name'];
+		//$viewVars['url']	= 'playlists/download/'.$playlist_id.'/'.$filename;
+		//$viewVars['url']	= "$bucket/batch/$client_id/$filename";
+		$viewVars['templateVars'] = $this->templateVars;
+		$s3Path= 'batch/'.$client_id.'/'.$filename;
+		$viewVars['secureUrl']	= $s3->get_object_url(VMS_ARCHIVE, $s3Path, '2 weeks');
+		$this->_email($subject,null,$to,$from=null,$template='batch_download',$viewVars,$cc=null,$bcc=null,'default_old');
+		
+	}
+	
+	function token($client_id, $user_id, $token){
+		$user = $this->User->read(array('name','username'),$user_id);
+		$this->_set_client($client_id);
+		
+		$subject= '[Fordela] Password reset notification';
+		$to=$user['User']['username'];
+		$from =array('no-reply@fordela.com' => $this->templateVars['clientname'] );
+		
+		$viewVars = array();
+		
+			if(!empty($user['User']['name']) || $user['User']['name'] != ''){
+				$viewVars['name']	= $user['User']['name'];
+			}else{
+				$viewVars['name']	= $user['User']['first_name'];
+			}
+			
+		$viewVars['username']	= $user['User']['username'];
+		$viewVars['token']	= $token;
+		$viewVars['templateVars'] = $this->templateVars;
+
+		$this->_email($subject,null,$to,$from=null,$template='tokens',$viewVars,$cc=null,$bcc=null);
+	}
+	
+	/**
+	 * Not Checked
+	 * Called From: instant_notifications_controller-afterPaypalNotification
+	 * Emails a user their username, pass and url after a paypal purchase from VVS
+	 * Depending upon the user status send different information
+	 * @param int client_id
+	 * @param int user_id
+	 * @param string user_status
+	 */
+	function paypal($txnId, $client_id, $video_id, $user_id, $user_status, $pass = null){
+		$user = $this->User->read(array('name','username','password'),$user_id);
+		$this->_set_client($client_id);
+		
+		if($user_status == 'New'){			
+			$template = 'add_new_user';
+		}
+		else{			
+			$template = 'add_user';
+		}
+		
+		Controller::loadModel('PaypalIpn.InstantPaymentNotification');              
+		$transaction = $this->InstantPaymentNotification->findById($txnId);
+
+		$this->Video->recursive = -1;
+		$video = $this->Video->read(array('title','image1'), $video_id);
+		
+		$this->Playlist->recursive = -1;
+		$playlist = $this->Playlist->read(array('logo','name'), $transaction['InstantPaymentNotification']['playlist_id']);
+
+		if(!empty($playlist['Playlist']['logo'])){
+			$logo = $playlist['Playlist']['logo'];
+		}
+		else{
+			$logo = null;
+		}
+		
+		$member_id=$this->Membership->field('Membership.id',array('user_id'=>$user_id,'client_id'=>$client_id));
+		
+		//can be multiple Video_member records need to get the most recent one
+		//$end_date = $this->VideoMember->field('end_date',array('member_id'=>$member_id ,'video_id'=>$video_id));
+		$end_date = $this->VideoMember->find('first',
+						     array('conditions'=>array('member_id'=>$member_id,'video_id'=>$video_id), 'fields'=>array('end_date'), 'order'=>array('VideoMember.id'=>'desc') )
+						     );
+		$end_date = $end_date['VideoMember']['end_date'];
+		$days_left = strtotime($end_date) - strtotime(NOW);
+		$days_left = ceil($days_left/86400);
+		
+		$subject = $playlist['Playlist']['name'].' Order Confirmation';
+		$to=$user['User']['username'];
+		$from = array('no-reply@fordela.com' => $this->templateVars['clientname'] );
+		$bcc = array('clientservices@fordela.com','dscherr@fordela.com');
+		
+		//Playlist Logo, Video Thumb
+		$viewVars = array();
+		$viewVars['video']	= $video['Video']['title'];
+		$viewVars['thumb']	= 'http://'.IMG_SERVER.'/img/x/videos/240X240_'.$video['Video']['image1']; //Video Thumb
+		$viewVars['logo']	= $logo; //Playlist logo
+		$viewVars['playlistName'] = $playlist['Playlist']['name']; //Playlist name
+		$viewVars['untilDate']	= $end_date; // 30 days from today get it from usersvideos record
+		$viewVars['daysLeft']	= $days_left; // 30 days from today get it from usersvideos record
+		$viewVars['status']	= $transaction['InstantPaymentNotification']['payment_status'];
+		$viewVars['orderNum']	= $txnId;
+		$viewVars['price']	= $transaction['InstantPaymentNotification']['payment_gross'];
+		$viewVars['address']	= $transaction['InstantPaymentNotification']['address_street'];
+		$viewVars['city']	= $transaction['InstantPaymentNotification']['address_city'];
+		$viewVars['state']	= $transaction['InstantPaymentNotification']['address_state'];
+		$viewVars['zip']	= $transaction['InstantPaymentNotification']['address_zip'];
+		$viewVars['name']	= $transaction['InstantPaymentNotification']['first_name'].' '.$transaction['InstantPaymentNotification']['last_name'];
+		$viewVars['username']	= $user['User']['username'];
+		$viewVars['password']	= $pass;
+		$viewVars['templateVars'] = $this->templateVars;
+
+		$this->_email($subject,'',$to,$from=null,$template='paypal_thankyou',$viewVars,$cc=null,$bcc,$layout = 'vvs');
+	}
+}
+?>

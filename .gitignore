@@ -1,0 +1,5 @@
+/Vendor/*
+/Config/database.php
+/Config/env.php
+/tmp/*
+/logs/*

@@ -1,0 +1,13 @@
+{
+    "name": "example-app",
+    "require": {
+        "cakephp/cakephp": "2.6.*",
+        "cakephp/debug_kit": "2.2.*",
+        "aws/aws-sdk-php": "2.*",
+        "kamisama/cake-resque": ">=4.1.0",
+        "ichikaway/cakephp-mongodb": "2.2.*@dev"
+    },
+    "config": {
+        "vendor-dir": "Vendor/"
+    }
+}
