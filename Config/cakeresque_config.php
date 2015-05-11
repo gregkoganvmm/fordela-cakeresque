@@ -1,11 +1,10 @@
 <?php
-// TODO: See the commands section of documentation.  Some easy steps to
-// create worker queues with a set number on the call
+// Documentation - see http://cakeresque.kamisama.me/usage
 
 // TODO: Resets - Use php try catch. In the catch enqueue the job again.
 
 Configure::write('CakeResque.Redis.host', 'localhost');
-Configure::write('CakeResque.Worker.workers', 1);
+Configure::write('CakeResque.Worker.workers', 1); // default number of workers if param not passed
 
 // TODO: Is there an easy way to find out when a Job fails or does not complete?
 Configure::write('CakeResque.Job.track', true);
@@ -14,10 +13,16 @@ Configure::write('CakeResque.Job.track', true);
 Configure::write('CakeResque.Log.handler','MongoDB');
 Configure::write('CakeResque.Log.target','mongodb://localhost:27017,vms,jobqueue');
 
+// Commands to run to get started (creates queue:workers default:10, region:10, file_mover:5)
+// Console/cake CakeResque.CakeResque start --queue default --workers 10
+// Console/cake CakeResque.CakeResque start --queue region --workers 10
+// Console/cake CakeResque.CakeResque start --queue file_mover --workers 5
 
-Configure::write('CakeResque.Queues.0.queue','file_mover');
-Configure::write('CakeResque.Queues.1.queue','region');
-Configure::write('CakeResque.Queues.2.queue','analytics');
+// Stop all workers
+// Console/cake CakeResque.CakeResque stop --all
+
+// General info about workers
+// Console/cake CakeResque.CakeResque stats
 
 Configure::write('CakeResque.Scheduler.enabled', true);
 ?>
