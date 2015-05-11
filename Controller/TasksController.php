@@ -18,16 +18,18 @@ class TasksController extends AppController
     {
         // Only accept from allowed IPs
         if(!in_array(env('REMOTE_ADDR'), array('127.0.0.1'))) {
-            $this->log($_SERVER,'request');
             die;
         }
     }
 
     // Test function for testing workers/jobs
-    public function friend($function = 'doSomething')
+    public function friend()
     {
-        // Get $params array from POST data
-        $this->_queue('default','Friend',$function,array('Go','process','a','job',NOW));
+        $this->_queue('default','Friend','doSomething',array('Go','process','a','job',NOW));
+        /*if($this->request->is('post') && is_array($this->request->data['params'])) {
+            $params = $this->request->data['params'];
+            $this->_queue('default','Friend','doSomething',$params);
+        }*/
     }
 
     /**
@@ -35,16 +37,17 @@ class TasksController extends AppController
      */
     public function index()
     {
-    	//$this->_queue('default','Friend','doSomething',array('Go','process','a','job',NOW));
+    	// do nothing
     }
 
     /**
      * FileMover endpoint
      * 
      */ 
-    public function upload($model = 'video') {
-        if($this->request->is('post')) {
-            $this->log($this->request->data,'job_post');
+    public function upload()
+    {
+        if($this->request->is('post') && is_array($this->request->data['params'])) {
+            $params = $this->request->data['params'];
             $this->_queue('file_mover','FileMover','copyToS3',$params);
         }
     }
@@ -54,8 +57,9 @@ class TasksController extends AppController
      */
     public function analytics()
     {
-        if($this->request->is('post')) {
-            $this->_queue('analytics','FileMover','copyToS3',$params);
+        if($this->request->is('post') && is_array($this->request->data['params'])) {
+            $params = $this->request->data['params'];
+            $this->_queue('default','Analytics','DailyDigest',$params);
         }
     }
 }
