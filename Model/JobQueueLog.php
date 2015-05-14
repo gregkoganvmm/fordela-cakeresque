@@ -22,4 +22,14 @@ class JobQueueLog extends AppModel {
 		return $this->_schema;
 	}
 
+	/**
+	 * Delete or flush all JobQueue worker logs  
+	 */
+	public function clearWorkerLogs()
+	{
+		if($this->deleteAll(true) {
+			return true;
+		}
+		return false;
+	}
 }
