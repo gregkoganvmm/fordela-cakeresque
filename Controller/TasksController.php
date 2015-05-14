@@ -25,7 +25,7 @@ class TasksController extends AppController
     // Test function for testing workers/jobs
     public function friend()
     {
-        $this->_queue('default','Friend','doSomething',array('Go','process','a','job',NOW));
+        $this->_queue('default','Friend','doSomething',array('Go2','process','a','job',NOW));
         /*if($this->request->is('post') && is_array($this->request->data['params'])) {
             $params = $this->request->data['params'];
             $this->_queue('default','Friend','doSomething',$params);
