@@ -27,7 +27,7 @@ class JobQueueLog extends AppModel {
 	 */
 	public function clearWorkerLogs()
 	{
-		if($this->deleteAll(true) {
+		if($this->deleteAll(true)) {
 			return true;
 		}
 		return false;
