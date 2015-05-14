@@ -8,6 +8,8 @@ class FriendShell extends AppShell
     public $status = null;
     public $retry = 3;
 
+    // TODO: Should perform() be removed from all shells?
+    // Doesn't look like it does anything and all works when it's commented
     /*public function perform() {
         $this->initialize();
         $this->{array_shift($this->args)}();
