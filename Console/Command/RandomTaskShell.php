@@ -14,6 +14,12 @@ class RandomTaskShell extends Shell {
 
 	var $uses = array('JobQueue','Video','User');
 
+	public function perform()
+    {
+        $this->initialize();
+        $this->{array_shift($this->args)}();
+    } 
+
 	/**
 	 * From VMS this is added to JobQueue from the LoginListener event
 	 *
