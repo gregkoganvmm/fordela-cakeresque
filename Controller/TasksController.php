@@ -16,8 +16,8 @@ class TasksController extends AppController
 
     public function beforeFilter()
     {
-        // Only accept from allowed IPs
-        if(!in_array(env('REMOTE_ADDR'), array('127.0.0.1'))) {
+        // Only accept from allowed IPs -> localhost, office, vms
+        if(!in_array(env('REMOTE_ADDR'), array('127.0.0.1','108.252.137.163'))) {
             die;
         }
     }
