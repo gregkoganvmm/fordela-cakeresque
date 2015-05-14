@@ -20,6 +20,12 @@ class JobQueuesController extends AppController
 		$this->set('logs', $logs);
 	}
 
+	public function clear_logs()
+	{
+		$this->JobQueueLog->clearWorkerLogs();
+		$this->redirect(array('controller'=>'job_queues','action'=>'task_log'));
+	}
+
 	public function login() 
 	{
 		if (!empty($this->request->data)) {
