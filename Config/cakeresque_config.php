@@ -11,7 +11,7 @@ Configure::write('CakeResque.Job.track', true);
 
 // Configure writing logs to MongoDB or use the default to logs/resque.log
 Configure::write('CakeResque.Log.handler','MongoDB');
-Configure::write('CakeResque.Log.target','mongodb://localhost:27017,vms,jobqueue');
+Configure::write('CakeResque.Log.target',MONGO_DATABASE);
 
 // Commands to run to get started (creates queue:workers default:10, region:10, file_mover:5)
 // Console/cake CakeResque.CakeResque start --queue default --workers 10
