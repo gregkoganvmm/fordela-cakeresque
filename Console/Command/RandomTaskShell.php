@@ -14,11 +14,6 @@ class RandomTaskShell extends Shell {
 
 	var $uses = array('JobQueue','Video','User');
 
-	public function perform() {
-        $this->initialize();
-        $this->{array_shift($this->args)}();
-    }
-
 	/**
 	 * From VMS this is added to JobQueue from the LoginListener event
 	 *
@@ -44,19 +39,6 @@ class RandomTaskShell extends Shell {
 	protected function _initAws() {
 		$Collection = new ComponentCollection();
 		return $this->Aws = new AwsComponent($Collection);
-	}
-
-	public function asperaToRecorder() {
-		$this->_initAws();
-		$client_id = 2672;
-		$newfilename = 'TS_Playground_13_movie_HDV_2.mov';
-		$this->out('Starting download');
-		$this->Aws->get('S3','getObject',array(
-			'Bucket' => 'upevilangel',
-			'Key' => '1a95f2b4-eb01-469b-8444-391a799d429d/PKG - 3 Titles/TS Playground 13 movie HDV [v2] 2.mov',
-			'SaveAs' => TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$newfilename
-		));
-		$this->out('Finished');
 	}
 
     public function s3ToRecorder() {
