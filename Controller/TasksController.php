@@ -18,14 +18,14 @@ class TasksController extends AppController
     {
         // Only accept from allowed IPs
         $allowed = array(
-            '127.0.0.1',
+            '127.0.0.1', // Self
             '108.252.137.163', // Office AT&T
             '199.83.220.241', // Office MonkeyBrain
-            //'' // VMSAPP
+            '54.191.119.250' // VMSAPP
         );
         if(!in_array(env('REMOTE_ADDR'), $allowed)) {
-            $this->log($_SERVER,'request');
-            //die;
+            //$this->log($_SERVER,'request');
+            die;
         }
     }
 
