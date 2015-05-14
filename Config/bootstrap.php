@@ -74,7 +74,7 @@ require APP.'Config'.DS.'env.php';
  * CakePlugin::load('DebugKit'); //Loads a single plugin named DebugKit
  *
  */
-CakePlugin::load('DebugKit');
+//CakePlugin::load('DebugKit');
 
 CakePlugin::load(array(
 	//'CakeResque' => array('bootstrap' => true),
@@ -87,6 +87,7 @@ CakePlugin::load(array(
 	'Mongodb',
 	'Notifications'
 ));
+CakePlugin::loadAll(array(array('routes' => true, 'bootstrap' => true, 'ignoreMissing' => true)));
 
 /**
  * You can attach event listeners to the request lifecycle as Dispatcher Filter . By default CakePHP bundles two filters:
