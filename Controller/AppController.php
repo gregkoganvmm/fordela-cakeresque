@@ -127,7 +127,8 @@ class AppController extends Controller {
     * @param Array $params any params the function needs
     *
     **/
-    function _queue($queue,$shell,$function,$params=array()){
+    function _queue($queue, $shell, $function, $params = array(), $jobId = null)
+    {
         $this->JobQueue = ClassRegistry::init('JobQueue');
         //ad the shell function to run to the beginning of the params array
         array_unshift($params,$function);
