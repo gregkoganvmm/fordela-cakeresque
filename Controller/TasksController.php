@@ -16,9 +16,16 @@ class TasksController extends AppController
 
     public function beforeFilter()
     {
-        // Only accept from allowed IPs -> localhost, office, vms
-        if(!in_array(env('REMOTE_ADDR'), array('127.0.0.1','108.252.137.163'))) {
-            die;
+        // Only accept from allowed IPs
+        $allowed = array(
+            '127.0.0.1',
+            '108.252.137.163', // Office AT&T
+            '199.83.220.241', // Office MonkeyBrain
+            //'' // VMSAPP
+        );
+        if(!in_array(env('REMOTE_ADDR'), $allowed)) {
+            $this->log($_SERVER,'request');
+            //die;
         }
     }
 
@@ -60,6 +67,19 @@ class TasksController extends AppController
         if($this->request->is('post') && is_array($this->request->data['params'])) {
             $params = $this->request->data['params'];
             $this->_queue('default','Analytics','DailyDigest',$params);
+        }
+    }
+
+    /**
+     * login notification endpoint
+     * 
+     * Trigger sending an email to Client Contact or Content Manager
+     */
+    public function login_notification()
+    {
+        if($this->request->is('post') && is_array($this->request->data['params'])) {
+            $params = $this->request->data['params'];
+            $this->_queue('default','RandomTask','login_notification',$params);
         }
     }
 }
