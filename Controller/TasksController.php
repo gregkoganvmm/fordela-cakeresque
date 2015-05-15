@@ -50,7 +50,7 @@ class TasksController extends AppController
             isset($this->request->data['queue']) && 
             isset($this->request->data['shell']) && 
             isset($this->request->data['function']) && 
-            is_array($this->request->data['params']) &&
+            is_array($this->request->data['params'])
         ) {
             // args: queue, shell, function, params
             $this->_queue($this->request->data['queue'], $this->request->data['shell'], $this->request->data['function'], $this->request->data['params']);
