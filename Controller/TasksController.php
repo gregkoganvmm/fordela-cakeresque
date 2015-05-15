@@ -44,7 +44,17 @@ class TasksController extends AppController
      */
     public function index()
     {
-    	// do nothing
+    	// Enqueue if all is passed in POST data
+        if(
+            $this->request->is('post') && 
+            isset($this->request->data['queue']) && 
+            is_array($this->request->data['params']) && 
+            isset($this->request->data['shell']) &&
+            isset($this->request->data['function'])
+        ) {
+            // args: queue, shell, function, params
+            $this->_queue($this->request->data['queue'], $this->request->data['shell'], $this->request->data['function'], $this->request->data['params']);
+        }
     }
 
     /**
