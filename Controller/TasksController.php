@@ -41,6 +41,10 @@ class TasksController extends AppController
 
     /**
      * Default endpoint
+     * 
+     * Use this is all needed arguments are going to be passed in the POST data
+     * 
+     * Args: queue, shell, function, params
      */
     public function index()
     {
@@ -48,9 +52,9 @@ class TasksController extends AppController
         if(
             $this->request->is('post') && 
             isset($this->request->data['queue']) && 
-            is_array($this->request->data['params']) && 
-            isset($this->request->data['shell']) &&
-            isset($this->request->data['function'])
+            isset($this->request->data['shell']) && 
+            isset($this->request->data['function']) && 
+            is_array($this->request->data['params']) &&
         ) {
             // args: queue, shell, function, params
             $this->_queue($this->request->data['queue'], $this->request->data['shell'], $this->request->data['function'], $this->request->data['params']);
@@ -85,11 +89,11 @@ class TasksController extends AppController
      * 
      * Trigger sending an email to Client Contact or Content Manager
      */
-    public function login_notification()
+    /*public function login_notification()
     {
         if($this->request->is('post') && is_array($this->request->data['params'])) {
             $params = $this->request->data['params'];
             $this->_queue('default','RandomTask','login_notification',$params);
         }
-    }
+    }*/
 }
