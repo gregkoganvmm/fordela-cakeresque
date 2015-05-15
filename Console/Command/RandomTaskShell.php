@@ -170,8 +170,6 @@ class RandomTaskShell extends Shell {
 		$HttpSocket = new HttpSocket();
 		$data = array('client_id' => $this->args[0]);
 		$response = $HttpSocket->post(ENVIRONMENT_APP_URL."/analytics/analytics/preCache",$data);
-		$this->log(ENVIRONMENT_APP_URL."/analytics/analytics/preCache",'request');
-		$this->log($response,'request');
 		$this->status['status'] = 'Finished';
 		$this->status['description'] = 'Analytics preCache complete for Client ID: '.$this->args[0];
 		$this->status['finished'] = date('Y-m-d H:i:s');
