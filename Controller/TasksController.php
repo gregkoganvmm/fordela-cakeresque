@@ -38,7 +38,7 @@ class TasksController extends AppController
     /**
      * Default endpoint
      * 
-     * Use this is all needed arguments are going to be passed in the POST data
+     * Use this if all needed arguments are going to be passed in the POST data
      * 
      * Args: queue, shell, function, params
      */
@@ -56,6 +56,8 @@ class TasksController extends AppController
             $this->_queue($this->request->data['queue'], $this->request->data['shell'], $this->request->data['function'], $this->request->data['params']);
         }
     }
+
+    // TODO: Endpoints below should be shell specific with limited args
 
     /**
      * FileMover endpoint
@@ -80,16 +82,4 @@ class TasksController extends AppController
         }
     }
 
-    /**
-     * login notification endpoint
-     * 
-     * Trigger sending an email to Client Contact or Content Manager
-     */
-    /*public function login_notification()
-    {
-        if($this->request->is('post') && is_array($this->request->data['params'])) {
-            $params = $this->request->data['params'];
-            $this->_queue('default','RandomTask','login_notification',$params);
-        }
-    }*/
 }
