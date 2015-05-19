@@ -157,6 +157,9 @@ class FileToS3Shell extends Shell {
         $exists = false;
         $attempt = 0;
 
+        // Attempt to make folders in case they don't already exist
+        $dir = new Folder(TMP.'uploads/'.$client_id.'/videos',true,0755);
+
         // Download file from S3 - retry a couple times if size mismatch
         while($attempt < 3 && $exists == false) {
           $video_file = TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$filename;
