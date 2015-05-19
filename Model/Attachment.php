@@ -141,7 +141,7 @@ class Attachment extends AppModel {
 	* Check S3 and remove the Attachment before deleting the Attachment
 	* record
 	*/
-	public function beforeDelete() {
+	public function beforeDelete($cascade = true) {
 		// Check S3 and remove attachment if exists
 		$s3 = Aws::factory(AWS_CONFIG)->get('S3');
 		$s3->registerStreamWrapper();
