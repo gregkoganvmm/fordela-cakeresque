@@ -25,7 +25,7 @@ class TasksController extends AppController
         );
         if(!in_array(env('REMOTE_ADDR'), $allowed)) {
             //$this->log($_SERVER,'request');
-            die;
+            //die;
         }
     }
 
