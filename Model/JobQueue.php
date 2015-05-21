@@ -4,7 +4,8 @@ App::uses('AppModel', 'Model');
  * JobQueue Model
  *
  */
-class JobQueue extends AppModel {
+class JobQueue extends AppModel 
+{
 
 /**
  * Use table
@@ -21,7 +22,8 @@ class JobQueue extends AppModel {
 	public $displayField = 'type';
         
         
-        function updateJob($jobId,$status){
+    function updateJob($jobId,$status)
+    {
 	    //update JobQueue record
 	    $this->id = $jobId;
 	    $this->save($status);
