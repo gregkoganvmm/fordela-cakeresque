@@ -37,7 +37,7 @@ class RandomTaskShell extends Shell {
 		$this->status['status'] = 'Finished';
 		$this->status['description'] = 'Notify '.$email.' that a user logged in. Username: '.$user['User']['username'];
 		$this->status['finished'] = date('Y-m-d H:i:s');
-		$jobId = end(array_values($this->args));
+		$jobId = end($this->args);
 		$this->JobQueue->updateJob($jobId,$this->status);
 	}
 
@@ -127,14 +127,14 @@ class RandomTaskShell extends Shell {
         $this->Video->set($update);
         if($this->Video->save($update)) {
             $this->out('*****Mediainfo updated!*****');
-            unlink($video_file);
+            @unlink($video_file);
         }
 				// If second arg is true mark the job Finished as the job is using a worker
 				if(isset($this->args[1])) {
 					$this->status['status'] = 'Finished';
 					$this->status['description'] = 'MediaInfo complete for VideoID: '.$this->args[0];
 					$this->status['finished'] = date('Y-m-d H:i:s');
-					$jobId = end(array_values($this->args));
+					$jobId = end($this->args);
 					$this->JobQueue->updateJob($jobId,$this->status);
 				}
     	} catch(Exception $e){
