@@ -85,7 +85,7 @@ class HlsShell extends Shell
         }
 
         $this->status['status'] = 'Finished';
-        $jobId = end(array_values($this->args));
+        $jobId = end($this->args);
         $this->JobQueue->updateJob($jobId,$this->status);
     }
 
