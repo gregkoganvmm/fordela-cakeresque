@@ -46,7 +46,7 @@ class Video extends AppModel {
 		if(is_file($path)){
 			$mediaInfo = new Mediainfo($path);
 			$result = array_merge($result,$mediaInfo->mediaParams);
-			$this->log($result,'test3');
+			//$this->log($result,'mediainfo_normalized');
 			$float_expression ='/[^\d\.]/'; //replace anything that is not a number or period
 			
 			//set up runtime
