@@ -173,7 +173,7 @@ class RandomTaskShell extends Shell {
 		$this->status['status'] = 'Finished';
 		$this->status['description'] = 'Analytics preCache complete for Client ID: '.$this->args[0];
 		$this->status['finished'] = date('Y-m-d H:i:s');
-		$jobId = end(array_values($this->args));
+		$jobId = end($this->args);
 		$this->JobQueue->updateJob($jobId,$this->status);
 	}
 
