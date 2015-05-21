@@ -26,17 +26,41 @@ class FileToS3Shell extends Shell {
         $this->{array_shift($this->args)}();
     }
 
+    /*public function test()
+    {
+        $this->out('TODO: Attempt to download file via stream to get around memory issues with large files');
+        $this->out('Attempting download...');
+
+        //////////////////////////////////////////////////////////////////////////////////
+        // TODO: Use code below and attempt to update function clientS3Bucket() with this
+        // instead of getObject
+        //////////////////////////////////////////////////////////////////////////////////
+
+        $dir = new Folder(TMP.'downloads/995/videos',true,0755);
+        $s3 = Aws::factory(AWS_CONFIG)->get('S3');
+        $s3->registerStreamWrapper();
+        // Open new file and write to it from stream
+        $output = fopen(TMP.'downloads/995/videos/myfile.mp4','w');
+        if ($stream = fopen('s3://media.fordela.com/995/10549_700_1335906750.mp4', 'r')) {
+            while (!feof($stream)) {
+                fwrite($output, fread($stream, 1024));
+            }
+            fclose($stream);
+        }
+        $this->out('Finished');
+    }*/
+
     public function audioToS3() {
         $audio_id = $this->args[0];
         $this->status = $this->Audio->copyToS3($audio_id);
-        $jobId = end(array_values($this->args));
+        $jobId = end($this->args);
         $this->JobQueue->updateJob($jobId,$this->status);
     }
 
     public function attachmentToS3() {
         $attachment_id = $this->args[0];
         $this->status = $this->Attachment->copyToS3($attachment_id);
-        $jobId = end(array_values($this->args));
+        $jobId = end($this->args);
         $this->JobQueue->updateJob($jobId,$this->status);
     }
 
@@ -49,7 +73,7 @@ class FileToS3Shell extends Shell {
         $user_id = $this->args[1];
         $url = $this->args[2];
         $filename = $this->args[3];
-        $jobId = end(array_values($this->args));
+        $jobId = end($this->args);
         $this->http = new HttpSocket();
         $this->_downloadFromDropbox($client_id,$url,$filename,'audio');
         $this->_processAudio($client_id,$user_id,$filename);
@@ -90,7 +114,7 @@ class FileToS3Shell extends Shell {
         $url = $this->args[2];
         $filename = $this->args[3];
         $transcode = ($this->args[4] == 1) ? 1 : 0;
-        $jobId = end(array_values($this->args));
+        $jobId = end($this->args);
         $this->_downloadFromDropbox($client_id,$url,$filename);
         $this->log('Download from dropbox complete','dropbox');
         $this->_processVideo($client_id,$user_id,$filename,$transcode,'Dropbox');
@@ -145,7 +169,7 @@ class FileToS3Shell extends Shell {
         $client_id = $this->args[2];
         $user_id = $this->args[3];
         $transcode = ($this->args[4] == 1) ? 1 : 0;
-        $jobId = end(array_values($this->args));
+        $jobId = end($this->args);
 
         $file_info = explode('/',$key);
         $filename = array_pop($file_info);
@@ -163,7 +187,7 @@ class FileToS3Shell extends Shell {
         // Download file from S3 - retry a couple times if size mismatch
         while($attempt < 3 && $exists == false) {
           $video_file = TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$filename;
-          unlink($video_file); // remove any partials before attempt
+          @unlink($video_file); // remove any partials before attempt
           $exists = $this->_downloadFromClientS3($bucket,$client_id,$filename,$key);
           $attempt++;
         }
@@ -207,7 +231,7 @@ class FileToS3Shell extends Shell {
             if(file_exists($video_file) && filesize($video_file) > 0) {
                 // TODO: Need to figure out what to do if they don't match!
                 if(filesize($video_file) == filesize($video_s3)) {
-                    unlink($video_s3);
+                    @unlink($video_s3);
                     // All looks good, return true to process the video
                     return true;
                 }
