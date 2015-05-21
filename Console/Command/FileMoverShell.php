@@ -41,7 +41,7 @@ class FileMoverShell extends Shell {
       $this->prores = false;
       if($this->transcode == true) {
             // TODO: Update to save all mediainfo data returned
-            //$mediainfo = $this->Video->mediainfo($src);
+            $mediainfo = $this->Video->mediainfo($src);
             $this->prores = ($mediainfo['format'] == 'ProRes') ? true : false;
       }
       $this->log($this->args,'FileMoverArgs');
