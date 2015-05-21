@@ -2,13 +2,10 @@
 /**
  * Shell for any extra HLS related tasks
  */
-define('MEDIA_HLS','media-hls.fordela.com');
-define('AWS_OREGON',APP.'Config'.DS.'fordela-aws-oregon-config.php');
 use Aws\Common\Aws;
 
 class HlsShell extends Shell
 {
-
     var $uses = array(
         'Client',
         'Domain',
