@@ -58,7 +58,7 @@ class FileMoverShell extends Shell {
       $this->status['status'] = 'Error';
       $this->status['description'] = 'File Failed to Make it to S3::'.$e;
       }
-      $jobId = end(array_values($this->args));
+      $jobId = end($this->args);
       $this->JobQueue->updateJob($jobId,$this->status);
   }
 
