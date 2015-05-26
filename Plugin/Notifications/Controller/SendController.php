@@ -124,6 +124,38 @@ class SendController extends NotificationsAppController {
 			$bcc[$admin['User']['username']] = $admin['User']['name'];
 		}
 
+		$this->_email($subject,null,$to='clientservices@fordela.com',$from=null,$template='daily_digest',$viewVars,$cc=null,$bcc);
+
+		return $bcc;
+	}
+
+	// Second function with more args for custom days and title
+	function daily_digest2($recent_logins,$client_id,$date)
+	{
+		//$date = date("F j, Y" ,mktime(0, 0, 0, date("m")  , date("d")-1, date("y")));
+		$subject= '[Fordela] '.$date.' Analytics Report';
+
+		$viewVars = array();
+		$viewVars['users'] = $recent_logins; // array of users who logged in for the day
+		$viewVars['date'] = $date;
+
+		$this->_set_client($client_id);
+		$viewVars['templateVars'] = $this->templateVars;
+
+		$conditions['Membership.daily_emails'] = 1;
+		$conditions['Membership.client_id'] = $client_id;
+
+		$contain = array('User'=>array('fields'=>array('username','name')));
+
+		$admins = $this->Membership->find('all',array('conditions'=>$conditions, 'contain'=>$contain, 'fields'=>array('Membership.id')));
+
+		$bcc = array();
+
+		foreach($admins as $admin){
+			//$to[$admin['User']['username']] = $admin['User']['name'];
+			$bcc[$admin['User']['username']] = $admin['User']['name'];
+		}
+
 		//$this->_email($subject,null,$to='clientservices@fordela.com',$from=null,$template='daily_digest',$viewVars,$cc=null,$bcc);
 		$this->_email($subject,null,$to='zack@fordela.com',$from=null,$template='daily_digest',$viewVars,$cc=null,$bcc);
 
