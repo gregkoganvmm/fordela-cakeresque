@@ -75,7 +75,7 @@ class CleanupShell extends Shell {
         $this->status['status'] = 'Finished';
         $this->status['description'] = 'Client ID: '.$client_id.' deleted';
         $this->status['finished'] = date('Y-m-d H:i:s');
-        $jobId = end(array_values($this->args));
+        $jobId = end($this->args);
         $this->JobQueue->updateJob($jobId,$this->status);
     }
 
@@ -335,7 +335,7 @@ class CleanupShell extends Shell {
 
         $this->status['status'] = 'Finished';
         $this->status['description'] = 'Source / Version objects deleted';
-        $jobId = end(array_values($this->args));
+        $jobId = end($this->args);
         $this->JobQueue->updateJob($jobId,$this->status);
 
         $this->out('Video cleanup complete for video_id '.$video['Video']['id']);
