@@ -127,7 +127,7 @@ class AnalyticsDayShell extends Shell
 
         /* Send the Email */
         $this->Send = new SendController();
-        $recipients = $this->Send->daily_digest($recent_users,$client_id);
+        $recipients = $this->Send->daily_digest2($recent_users,$client_id,$today);
         if(!empty($recipients)){
             $to = implode(',',array_keys($recipients));
             $status['description'] = 'Email Sent to: '.$to;
