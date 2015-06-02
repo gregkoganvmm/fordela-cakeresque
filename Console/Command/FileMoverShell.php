@@ -182,13 +182,10 @@ class FileMoverShell extends Shell {
             'archive' => $this->filename,
             'location' => 's3://'.$this->bucket.$path.$this->filename,
             'archive_dir' => $this->client_id.'/',
-            'filesize' => $this->filesize
+            'filesize' => $this->filesize,
+            'image1' => 'video_default_screenshot.jpg',
+            'image_key' => 'videos/video_default_screenshot.jpg'
         );
-
-        // TODO: Is this needed? NodeUpload is no longer an option
-        if($this->uploader <> 'NodeUpload'){
-             $video['image1'] = 'video_default_screenshot.jpg';
-        }
 
         $this->Video->set($video);
         $this->Video->save();
@@ -208,14 +205,20 @@ class FileMoverShell extends Shell {
         App::uses('HttpSocket', 'Network/Http');
         $HttpSocket = new HttpSocket();
 
+        $this->Video->set(array(
+          'image1' => 'encoding.jpg',
+          'image_key' => 'videos/encoding.jpg'
+        ));
+        $this->Video->save();
+
         // If $this->type was SideBySide it was overwritten. Use $this->is3d instead.
         $is3d = (isset($this->is3d)) ? $this->is3d : 0;
 
         $data = array('Video' => array(
-        'client_id' => $this->client_id,
-        'id' => $this->record_id, // video_id
-        '3d' => $is3d,
-        'prores' => $this->prores
+          'client_id' => $this->client_id,
+          'id' => $this->record_id, // video_id
+          '3d' => $is3d,
+          'prores' => $this->prores
         ));
 
         $results = $HttpSocket->post(ENVIRONMENT_APP_URL.'/videos/create_jobs', $data);
