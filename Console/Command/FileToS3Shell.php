@@ -107,6 +107,29 @@ class FileToS3Shell extends Shell {
     /**
     * Get the video from Dropbox then process it like normal
     */
+    public function box_platform() {
+        $this->log($this->args,'box_platform');
+        $client_id = $this->args[0];
+        $user_id = $this->args[1];
+        $url = $this->args[2];
+        $filename = $this->args[3];
+        $transcode = ($this->args[4] == 1) ? 1 : 0;
+        $jobId = end($this->args);
+        $this->_downloadFromDropbox($client_id,$url,$filename);
+        $this->log('Download from dropbox complete','box_platform');
+        $this->_processVideo($client_id,$user_id,$filename,$transcode,'Box Platform');
+        $this->log('Post back to VMS','box_platform');
+        $this->status = array(
+            'status' => 'Finished',
+            'description' => 'Box Platform video downloaded and processing started',
+            'finished' => date('Y-m-d H:i:s')
+        );
+        $this->JobQueue->updateJob($jobId,$this->status);
+    }
+
+    /**
+    * Get the video from Dropbox then process it like normal
+    */
     public function dropbox() {
         $this->log($this->args,'dropbox');
         $client_id = $this->args[0];
