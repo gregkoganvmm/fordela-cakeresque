@@ -107,7 +107,8 @@ class FileToS3Shell extends Shell {
     /**
     * Get the video from Dropbox then process it like normal
     */
-    public function box_platform() {
+    public function box_platform() 
+    {
         $this->log($this->args,'box_platform');
         $client_id = $this->args[0];
         $user_id = $this->args[1];
@@ -117,7 +118,10 @@ class FileToS3Shell extends Shell {
         $jobId = end($this->args);
         $this->_downloadFromDropbox($client_id,$url,$filename);
         $this->log('Download from dropbox complete','box_platform');
-        $this->_processVideo($client_id,$user_id,$filename,$transcode,'Box Platform');
+        //clean and rename filename if necessary
+        $newfilename = $this->cleanFilename($filename);
+        rename(TMP.$client_id.DS.'videos'.DS.$filename,TMP.$client_id.DS.'videos'.DS.$newfilename);
+        $this->_processVideo($client_id,$user_id,$newfilename,$transcode,'Box Platform');
         $this->log('Post back to VMS','box_platform');
         $this->status = array(
             'status' => 'Finished',
@@ -140,7 +144,10 @@ class FileToS3Shell extends Shell {
         $jobId = end($this->args);
         $this->_downloadFromDropbox($client_id,$url,$filename);
         $this->log('Download from dropbox complete','dropbox');
-        $this->_processVideo($client_id,$user_id,$filename,$transcode,'Dropbox');
+        //clean and rename filename if necessary
+        $newfilename = $this->cleanFilename($filename);
+        rename(TMP.$client_id.DS.'videos'.DS.$filename,TMP.$client_id.DS.'videos'.DS.$newfilename);
+        $this->_processVideo($client_id,$user_id,$newfilename,$transcode,'Dropbox');
         $this->log('Post back to VMS','dropbox');
         $this->status = array(
             'status' => 'Finished',
@@ -148,6 +155,30 @@ class FileToS3Shell extends Shell {
             'finished' => date('Y-m-d H:i:s')
         );
         $this->JobQueue->updateJob($jobId,$this->status);
+    }
+
+    /**
+     * Clean the filename to alphanumeric characters plus dashes, underscores, and periods
+     */
+    protected function cleanFilename($filename)
+    {
+        $fileInfo = pathinfo($filename);
+        // Update filename to alphanumeric characters plus dashes, underscores, and periods
+        $str = trim(preg_replace("/[^a-zA-Z0-9'\s-_.]/", '', $fileInfo['filename']));
+        $str = str_replace([' '],'_',$str);
+
+        // Strip off non alphanumeric characters from beginning of new filename
+        $strArr = str_split($str);
+        foreach($strArr as $char) {
+            if (ctype_alnum($char)) {
+                break;
+            } else {
+                $str = substr($str, 1);
+            }
+        }
+
+        $newfilename = $str.'.'.$fileInfo['extension'];
+        return $newfilename;
     }
 
     // TODO: Move this to Video model
