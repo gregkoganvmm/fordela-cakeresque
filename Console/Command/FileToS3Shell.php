@@ -120,6 +120,8 @@ class FileToS3Shell extends Shell {
         $this->log('Download from dropbox complete','box_platform');
         //clean and rename filename if necessary
         $newfilename = $this->cleanFilename($filename);
+        // Delete new filename before running PHP rename to clear any statcache
+        @unlink(TMP.$client_id.DS.'videos'.DS.$newfilename);
         rename(TMP.$client_id.DS.'videos'.DS.$filename,TMP.$client_id.DS.'videos'.DS.$newfilename);
         $this->_processVideo($client_id,$user_id,$newfilename,$transcode,'Box Platform');
         $this->log('Post back to VMS','box_platform');
@@ -146,6 +148,8 @@ class FileToS3Shell extends Shell {
         $this->log('Download from dropbox complete','dropbox');
         //clean and rename filename if necessary
         $newfilename = $this->cleanFilename($filename);
+        // Delete new filename before running PHP rename to clear any statcache
+        @unlink(TMP.$client_id.DS.'videos'.DS.$newfilename);
         rename(TMP.$client_id.DS.'videos'.DS.$filename,TMP.$client_id.DS.'videos'.DS.$newfilename);
         $this->_processVideo($client_id,$user_id,$newfilename,$transcode,'Dropbox');
         $this->log('Post back to VMS','dropbox');
