@@ -26,7 +26,10 @@ class Client extends AppModel {
 	 */
 	var $name = 'Client';
 
-	var $actsAs = array('Acl' => array('type'=> 'requester'),'Containable');
+	var $actsAs = array(
+		//'Acl' => array('type'=> 'requester'),
+		'Containable'
+	);
 
 	var $validate = array(
 			'company' => array(
