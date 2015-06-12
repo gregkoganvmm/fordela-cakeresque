@@ -43,7 +43,7 @@ class StorageShell extends Shell {
     public function getClientTotals() {
 
         $clients = $this->Client->find('all',array(
-                //'conditions' => array('Client.id' => 995), // Condition for testing only
+                'conditions' => array('Client.id <>' => 1), // exclude VMS-ADMIN
                 'fields' => array('Client.id','Client.name','Client.video_count','Client.audio_count','Client.max_storage'),
                 'order' => 'Client.id DESC',
                 'contain' => array()
