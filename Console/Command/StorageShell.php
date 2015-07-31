@@ -156,7 +156,7 @@ class StorageShell extends Shell {
         }
 
         // Send Email Report
-        $this->getStorageReport();
+        //$this->getStorageReport();
     }
 
     public function _getYesterdaysId($client_id){
