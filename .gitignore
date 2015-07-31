@@ -4,3 +4,4 @@
 /tmp/*
 /logs/*
 /composer.lock
+.idea
