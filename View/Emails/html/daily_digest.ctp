@@ -80,7 +80,7 @@ if(!empty($user['company'])) {
                     <tbody>
                     <?php if(!empty($user['videos'])):?>
                     <?php foreach($user['videos'] as $video):?>
-<?php if($video['playthrough'] && $video['playthrough'] > 1 && $video['playthrough'] !== '0' && $video['playthrough'] <> 0):?>
+<?php if($video['playthrough'] > 1):?>
                       <tr>
                         <td bgcolor="transparent" border="0" width="56%" valign="top" style="font-size:12px;font-family:arial;">
 <?php
