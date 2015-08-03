@@ -22,6 +22,9 @@ class HeartbeatShell extends AppShell {
 	public function checkJobs(){
 		$conditions['Not']['status'] = array('Finished'); 
 		$conditions['failed'] = 0;
+
+		$this->log('Heartbeat run '.NOW,'cron');
+
 		//get all jobs stuck "Processing", "Reset" or "Error"
 		$jobs = $this->JobQueue->find('all',array('conditions'=>$conditions));
 
