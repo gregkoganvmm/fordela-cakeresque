@@ -5,7 +5,9 @@ App::uses('CakeTime', 'Utility');
 
 class StorageShell extends Shell {
     
-    public $uses = array('Client','Audio','Video','VideoVersion','StorageStat','EncodingJob');
+    public $uses = array('Client','Audio','Video','VideoVersion','StorageStat','EncodingJob','BandwidthStat');
+
+    public $tasks = array('BandwidthStats');
 
     /**
     *   Fixes the encode count for all StorageStat records. How? Gets list of clients 
@@ -157,6 +159,8 @@ class StorageShell extends Shell {
 
         // Send Email Report
         //$this->getStorageReport();
+
+        $this->BandwidthStats->execute();
     }
 
     public function _getYesterdaysId($client_id){
