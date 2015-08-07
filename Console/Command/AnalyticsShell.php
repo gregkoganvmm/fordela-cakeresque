@@ -60,7 +60,7 @@ class AnalyticsShell extends Shell
         //mongo records use GMT
         //date_default_timezone_set('GMT');
 
-
+        date_default_timezone_set('UTC');
         $yesterday = date("m/d/y" ,mktime(0, 0, 0, date("m")  , date("d")-1, date("y")));
         $today = date("m/d/y");
 
