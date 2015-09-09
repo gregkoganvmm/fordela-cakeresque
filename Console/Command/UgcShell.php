@@ -37,7 +37,7 @@ class UgcShell extends Shell {
             'filename' => $srcFile
         ));
 
-        $results = $HttpSocket->post(ENVIRONMENT_APP_URL.'/videos/ugc', $data);
+        $results = $HttpSocket->post(ENVIRONMENT_APP_URL.'/ugc/process', $data);
     }
 
     // Make AwsComponent callable
