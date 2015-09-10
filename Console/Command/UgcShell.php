@@ -15,6 +15,53 @@ class UgcShell extends Shell {
         $this->{array_shift($this->args)}();
     }
 
+    // ftp://nvidiahd:nvidiahd123@nvidiahd.upload.akamai.com/112890/progressive/ugc/{$node->nid}.mp4
+    public function pushToAkamai()
+    {
+        // Need node_id (in filename)
+        $version = $this->args[0];
+
+        $this->_initAws();
+        //TODO: GetObject from media.fordela.com/ugc/FILENAME
+        $r = $this->Aws->get('S3','getObject',array(
+            'Bucket' => 'media.fordela.com',
+            'Key' => 'ugc/'.$version,
+            'SaveAs' => TMP.'ugc/version/'.$version
+        ));
+
+        // connect and login to FTP server
+        $ftp_server = "nvidiahd.upload.akamai.com";
+        $ftp_username = 'nvidiahd';
+        $ftp_userpass = 'nvidiahd123';
+
+        $ftp_conn = ftp_connect($ftp_server) or die("Could not connect to $ftp_server");
+        $login = ftp_login($ftp_conn, $ftp_username, $ftp_userpass);
+        ftp_pasv($ftp_conn, true);
+        ftp_chdir($ftp_conn, "112890/progressive/ugc");
+
+        $file = TMP.'ugc/version/'.$version;
+
+        // upload version
+        if (ftp_put($ftp_conn, $version, $file, FTP_ASCII)) {
+            echo "Successfully uploaded $file.";
+        } else {
+            echo "Error uploading $file.";
+        }
+
+        // close connection
+        ftp_close($ftp_conn);
+
+        //TODO: On Successful upload notify 3DVL & cleanup
+
+
+        //Mark Job finished
+        $this->status['status'] = 'Finished';
+        $this->status['description'] = 'UGC version copied to Akamai';
+        $this->status['finished'] = date('Y-m-d H:i:s');
+        $jobId = end($this->args);
+        $this->JobQueue->updateJob($jobId,$this->status);
+    }
+
     public function processUgc()
     {
         $srcFile = $this->args[0];
