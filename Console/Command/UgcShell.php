@@ -51,7 +51,22 @@ class UgcShell extends Shell {
         // close connection
         ftp_close($ftp_conn);
 
+        $info = pathinfo($version);
+
         //TODO: On Successful upload notify 3DVL & cleanup
+        //The following is copied from the encoder git repo.  Need to modify slightly for our purposes here.
+        //Drupal expects: reference, status, source
+        $notification = (object) array(
+            'source'=>'http://hdprogressive.3dvisionlive.com/ugc/'.$version, //TODO: Is this correct?
+            'status'=> 'Finished',
+            'reference'=>$info['filename']
+        );
+
+        // XML Helper obsolete w/ Cake 2.0 - Use JSON instead
+        $post = json_encode($notification);
+        $this->log($post,'postLog');
+        $http = new HttpSocket();
+        $http->post('http://www.3dvisionlive.com/fordela_encoder/notification', $post);
 
 
         //Mark Job finished
