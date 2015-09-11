@@ -39,7 +39,7 @@ class UgcShell extends Shell {
         ftp_pasv($ftp_conn, true);
         ftp_chdir($ftp_conn, "112890/progressive/ugc");
 
-        $file = TMP.'ugc/version/'.$version;
+        $file = TMP.'uploads/ugc/version/'.$version;
 
         // upload version
         if (ftp_put($ftp_conn, $version, $file, FTP_ASCII)) {
