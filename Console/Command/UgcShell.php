@@ -64,10 +64,10 @@ class UgcShell extends Shell {
         );
 
         // XML Helper obsolete w/ Cake 2.0 - Use JSON instead
-        $post = json_encode($notification);
-        $this->log($post,'postLog');
+        //$post = json_encode($notification);
+        $this->log($notification,'postLog');
         $http = new HttpSocket();
-        $http->post('http://www.3dvisionlive.com/fordela_encoder/notification', $post);
+        $http->post('http://www.3dvisionlive.com/fordela_encoder/notification', $notification);
 
 
         //Mark Job finished
