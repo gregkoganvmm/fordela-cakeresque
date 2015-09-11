@@ -22,11 +22,11 @@ class UgcShell extends Shell {
         $version = $this->args[0];
 
         $this->_initAws();
-        //TODO: GetObject from media.fordela.com/ugc/FILENAME
-        $r = $this->Aws->get('S3','getObject',array(
+        //GetObject from media.fordela.com/ugc/FILENAME
+        $this->Aws->get('S3','getObject',array(
             'Bucket' => 'media.fordela.com',
             'Key' => 'ugc/'.$version,
-            'SaveAs' => TMP.'ugc/version/'.$version
+            'SaveAs' => TMP.'uploads/ugc/version/'.$version
         ));
 
         // connect and login to FTP server
