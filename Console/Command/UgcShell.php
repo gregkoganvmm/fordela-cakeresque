@@ -56,9 +56,9 @@ class UgcShell extends Shell {
         //TODO: On Successful upload notify 3DVL & cleanup
         //The following is copied from the encoder git repo.  Need to modify slightly for our purposes here.
         //Drupal expects: reference, status, source
-        $notification = (object) array(
+        $notification = array(
             //'source'=>'http://hdprogressive.3dvisionlive.com/ugc/'.$version, //TODO: Is this correct?
-            'source'=>'http://www.3dvisionlive.com/sites/default/files/ugc/free/'.$version, //TODO: Is this correct?
+            'source'=>'http://www.3dvisionlive.com/sites/default/files/ugc/free/'.$version,
             'status'=> 'Finished',
             'reference'=>$info['filename']
         );
