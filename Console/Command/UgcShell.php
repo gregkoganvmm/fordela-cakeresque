@@ -42,7 +42,7 @@ class UgcShell extends Shell {
         $file = TMP.'uploads/ugc/version/'.$version;
 
         // upload version
-        if (ftp_put($ftp_conn, $version, $file, FTP_ASCII)) {
+        if (ftp_put($ftp_conn, $version, $file, FTP_BINARY)) { // was FTP_ASCII
             echo "Successfully uploaded $file.";
         } else {
             echo "Error uploading $file.";
