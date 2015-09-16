@@ -99,7 +99,7 @@ class UgcShell extends Shell {
         // $thumb_destination = "ftp://drupal:yeahbaby@3dvisionlive.fordela.com/sites/default/files/ugc/images/".$image;
 
         // connect and login to FTP server
-        $ftp_server = "dvisionlive.fordela.com";
+        $ftp_server = "3dvisionlive.fordela.com";
         $ftp_username = 'drupal';
         $ftp_userpass = 'yeahbaby';
 
@@ -119,7 +119,7 @@ class UgcShell extends Shell {
 
         // close connection
         ftp_close($ftp_conn);
-        
+
         return true;
     }
 
