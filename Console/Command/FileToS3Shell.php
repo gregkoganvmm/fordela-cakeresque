@@ -122,7 +122,9 @@ class FileToS3Shell extends Shell {
         $newfilename = $this->cleanFilename($filename);
         // Delete new filename before running PHP rename to clear any statcache
         @unlink(TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$newfilename);
-        rename(TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$filename,TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$newfilename);
+        if($filename <> $newfilename) {
+            rename(TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$filename,TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$newfilename);
+        }
         $this->_processVideo($client_id,$user_id,$newfilename,$transcode,'Box Platform');
         $this->log('Post back to VMS','box_platform');
         $this->status = array(
