@@ -71,8 +71,8 @@ class UgcShell extends Shell {
         //$post = json_encode($notification);
         $this->log($notification,'postLog');
         $http = new HttpSocket();
-        $http->post('http://www.3dvisionlive.com/fordela_encoder/notification', $notification);
-
+        $r = $http->post('http://www.3dvisionlive.com/fordela_encoder/notification', $notification);
+        $this->log($r,'postLog');
 
         //Mark Job finished
         $this->status['status'] = 'Finished';
