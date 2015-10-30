@@ -18,7 +18,7 @@ class RandomTaskShell extends Shell {
     {
         $this->initialize();
         $this->{array_shift($this->args)}();
-    } 
+    }
 
 	/**
 	 * From VMS this is added to JobQueue from the LoginListener event
@@ -169,7 +169,11 @@ class RandomTaskShell extends Shell {
 	public function preCacheAnalytics() {
 		$HttpSocket = new HttpSocket();
 		$data = array('client_id' => $this->args[0]);
-		$response = $HttpSocket->post(ENVIRONMENT_APP_URL."/analytics/analytics/preCache",$data);
+		$i = 0;
+		while ($i < 3) {
+			$i++;
+			$response = $HttpSocket->post(ENVIRONMENT_APP_URL."/analytics/analytics/preCache",$data);
+		}
 		$this->status['status'] = 'Finished';
 		$this->status['description'] = 'Analytics preCache complete for Client ID: '.$this->args[0];
 		$this->status['finished'] = date('Y-m-d H:i:s');
