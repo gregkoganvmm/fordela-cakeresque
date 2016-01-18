@@ -118,7 +118,10 @@ class AnalyticsShell extends Shell
                 $recent_users[$k]['total_video_viewed'] = count($videos);
                 $recent_users[$k]['customer'] = $user['User']['username'];
                 $recent_users[$k]['company'] = $user['User']['company'];
-                $recent_users[$k]['name'] = $user['User']['first_name'].' '.$user['User']['last_name'];
+                //Use username if either first_name and last_name are empty
+                $name = (!empty($user['User']['first_name']) && !empty($user['User']['last_name'])) ?
+                    $user['User']['first_name'].' '.$user['User']['last_name'] : $user['User']['username'];
+                $recent_users[$k]['name'] = $name;
                 $recent_users[$k]['most_recent_visit'] = $user['Membership']['last_login'];
                 $recent_users[$k]['videos'] = $videos;
             }
