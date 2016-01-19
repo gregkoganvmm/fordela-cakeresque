@@ -55,6 +55,9 @@ class AnalyticsShell extends Shell
 
         //need membership_id, Username,last_login
         $users = $this->Membership->find('all',array('conditions'=>$conditions, 'contain'=>$contain, 'order'=>$order, 'fields'=>array('Membership.id','Membership.last_login')));
+        $total = count($users);
+        $this->out('Total users: '.$total);
+
 
         /* Analytics Conditions */
         //mongo records use GMT
@@ -94,7 +97,7 @@ class AnalyticsShell extends Shell
             $recent_users[$k]['video_titles'] = '';
 
             $activitys = $this->SessionActivity->find('all',array('conditions'=>array('membership_id'=>(int) $user['Membership']['id'],'created'=>$created), 'fields'=>$anayltics_fields));
-            //debug($activitys);
+            debug($activitys);
             $videos = array();
 
             foreach($activitys as $v => $activity){
@@ -125,7 +128,14 @@ class AnalyticsShell extends Shell
                 $recent_users[$k]['most_recent_visit'] = $user['Membership']['last_login'];
                 $recent_users[$k]['videos'] = $videos;
             }
+            $count = $k + 1;
+            $this->out($count.' / '.$total);
         }
+
+
+        /*debug($recent_users);
+        $this->out('Finished');
+        die;*/
 
         //date_default_timezone_set('PST');
         //$this->log($recent_users,'analytics/daily');
@@ -145,7 +155,7 @@ class AnalyticsShell extends Shell
             $status['status'] = 'Error';
         }
         $jobId = array_pop($this->args);
-    $this->JobQueue->updateJob($jobId,$status);
+        $this->JobQueue->updateJob($jobId,$status);
     }
 
 
