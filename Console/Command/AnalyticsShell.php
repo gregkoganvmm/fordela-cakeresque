@@ -35,7 +35,7 @@ class AnalyticsShell extends Shell
 
         $conditions['Membership.client_id'] = $client_id;
 
-        $conditions['Membership.last_login >='] = date("Y-m-d" ,mktime(0, 0, 0, date("m")  , date("d")-7, date("Y"))).' 00:00:00'; //week ago
+        $conditions['Membership.last_login >='] = date("Y-m-d" ,mktime(0, 0, 0, date("m")  , date("d")-1, date("Y"))).' 00:00:00'; //week ago
         $conditions['Membership.last_login <='] = date("Y-m-d" ,mktime(0, 0, 0, date("m")  , date("d")+1, date("Y"))).' 00:00:00'; //tomorrow
 
         $order['User.username'] = 'ASC';
