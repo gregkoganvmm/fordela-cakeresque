@@ -36,7 +36,11 @@ class SendController extends NotificationsAppController {
 	function _set_client($client_id){
 		$vmsUrl =  'https';
 		if(!empty($client_id)){
-			$client = $this->Client->find('first',array('conditions'=>array('Client.id'=>$client_id),'fields'=>array('Client.name','Client.custom_logo', 'Client.subdomain','Client.date_format', 'Client.email','Client.white_label') ));
+			$client = $this->Client->find('first',array(
+				'conditions'=>array('Client.id'=>$client_id),
+				'fields'=>array('Client.name','Client.custom_logo', 'Client.subdomain','Client.date_format', 'Client.email','Client.white_label'),
+				'contain' => array()
+			));
 			$domain = $this->Domain->find('first',array('conditions'=>array('Domain.client_id'=>$client_id)));
 			$this->templateVars['clientid'] = $client_id;
 			$this->templateVars['clientname'] = $client['Client']['name'];
