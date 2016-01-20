@@ -52,6 +52,9 @@ $subdomain = $templateVars['subdomain'];
             <?php if(!empty($users)):?>
               <?php $i = 0;?>
               <?php foreach($users as $user): ?>
+            <?php if(empty($user['videos'])) {
+                continue;
+            } ?>
 <?php
 if( $odd = $i%2 ){
   $rowColor = 'EEEEEE';
