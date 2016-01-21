@@ -51,9 +51,19 @@ $subdomain = $templateVars['subdomain'];
                 <tbody>
                 <?php if(!empty($users)):?>
                     <?php $i = 0;?>
-                    <?php foreach($users as $user): ?>
+                    <?php foreach($users as $key => $user): ?>
                         <?php
-                        if(!empty($user['videos']) && count($user['videos']) > 0){
+                        if(!empty($user['videos']) && count($user['videos']) > 0 ){
+                            $show_line = false;
+                            foreach($user['videos'] as $k => $v) {
+                                if($v['playthrough'] > 0) {
+                                    $show_line = true;
+                                    break;
+                                }
+                            }
+                            if(!$show_line) {
+                                continue;
+                            }
                             // Do nothing
                         } else {
                             continue; // skip this row if no videos
