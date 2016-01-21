@@ -97,7 +97,6 @@ class AnalyticsShell extends Shell
             $recent_users[$k]['video_titles'] = '';
 
             $activitys = $this->SessionActivity->find('all',array('conditions'=>array('membership_id'=>(int) $user['Membership']['id'],'created'=>$created), 'fields'=>$anayltics_fields));
-            debug($activitys);
             $videos = array();
 
             foreach($activitys as $v => $activity){
@@ -132,18 +131,10 @@ class AnalyticsShell extends Shell
             $this->out($count.' / '.$total);
         }
 
-
-        /*debug($recent_users);
-        $this->out('Finished');
-        die;*/
-
-        //date_default_timezone_set('PST');
-        //$this->log($recent_users,'analytics/daily');
-        //debug($recent_users);
-
         /* Send the Email */
         $this->Send = new SendController();
         $recipients = $this->Send->daily_digest($recent_users,$client_id);
+        $this->log($recipients,'dd_recipients');
         if(!empty($recipients)){
             $to = implode(',',array_keys($recipients));
             $status['description'] = 'Email Sent to: '.$to;
