@@ -128,7 +128,7 @@ class SendController extends NotificationsAppController {
 			$bcc[$admin['User']['username']] = $admin['User']['name'];
 		}*/
 
-		$this->_email($subject,null,$to='fordelaslackbot@gmail.com',$from=null,$template='daily_digest',$viewVars,$cc=null,$bcc='zack@fordela.com');
+		$this->_email($subject,null,$to='fordelaslackbot@gmail.com',$from=null,$template='daily_digest',$viewVars,$cc=null,$bcc=array('zack@smallwolf.net'));
 
 		return $bcc;
 	}
