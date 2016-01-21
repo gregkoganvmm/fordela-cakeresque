@@ -110,6 +110,7 @@ class AppController extends Controller {
         $this->log($message,'email_messages');
 
         if($email->send()){
+            $this->log('Success','email_messages');
             return true;
         }
         else{
