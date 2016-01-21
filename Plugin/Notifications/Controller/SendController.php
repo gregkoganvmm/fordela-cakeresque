@@ -123,12 +123,12 @@ class SendController extends NotificationsAppController {
 
 		$bcc = array();
 
-		/*foreach($admins as $admin){
+		foreach($admins as $admin){
 			//$to[$admin['User']['username']] = $admin['User']['name'];
 			$bcc[$admin['User']['username']] = $admin['User']['name'];
-		}*/
+		}
 
-		$this->_email($subject,null,$to='fordelaslackbot@gmail.com',$from=null,$template='daily_digest',$viewVars,$cc=null,$bcc=array('zack@smallwolf.net'));
+		$this->_email($subject,null,$to='fordelaslackbot@gmail.com',$from=null,$template='daily_digest',$viewVars,$cc=null,$bcc);
 
 		return $bcc;
 	}
