@@ -53,7 +53,9 @@ $subdomain = $templateVars['subdomain'];
                     <?php $i = 0;?>
                     <?php foreach($users as $user): ?>
                         <?php
-                        if(empty($user['videos'])){
+                        if(!empty($user['videos'])){
+                            // Do nothing
+                        } else {
                             continue; // skip this row if no videos
                         }
 
