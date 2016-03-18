@@ -105,7 +105,6 @@ class SendController extends NotificationsAppController {
 	function daily_digest($recent_logins,$client_id)
 	{
 		$date = date("F j, Y" ,mktime(0, 0, 0, date("m")  , date("d")-1, date("y")));
-		$subject= '[Fordela] '.$date.' Analytics Report';
 
 		$viewVars = array();
 		$viewVars['users'] = $recent_logins; // array of users who logged in for the day
@@ -113,6 +112,8 @@ class SendController extends NotificationsAppController {
 
 		$this->_set_client($client_id);
 		$viewVars['templateVars'] = $this->templateVars;
+
+		$subject= '[Fordela] '.$date.' Analytics Report for '.$this->templateVars['clientname'];
 
 		$conditions['Membership.daily_emails'] = 1;
 		$conditions['Membership.client_id'] = $client_id;
