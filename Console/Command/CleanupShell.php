@@ -241,12 +241,6 @@ class CleanupShell extends Shell {
         if(!empty($video['VideoVersion'])){
             foreach($video['VideoVersion'] as $version){
                 if(!empty($version['host'])){
-
-                    // Get the Bucket name and Key object
-                    /*$host_string = str_replace(array('s3://','http://'),'',$version['host']);
-                    $string_parts = explode('.',$host_string);
-
-                    $bucket = $string_parts[0].'.fordela.com';*/
                     $urlInfo = parse_url($version['host']);
                     $bucket = $urlInfo['host'];
 
@@ -321,12 +315,9 @@ class CleanupShell extends Shell {
         // Check and try one more time to delete the Source just in case there was no Source version record
         if(!isset($srcMultipleRecords['VideoVersion']['id'])){ // Skip if set for 2nd time
             if(!empty($video['Video']['location']) && !empty($video['Video']['archive_dir'])){
-                $bucket_str = str_replace(array('s3://','http://'),'',$video['Video']['location']);
-                $bucArr = explode('.',$bucket_str);
-
-                $srcBucket = $bucArr[0].'.fordela.com';
+                $locArr = parse_url($video['Video']['location']);
+                $srcBucket = $locArr['host'];
                 $srcKey = $video['Video']['archive_dir'].$video['Video']['archive'];
-
                 $this->_initAws();
                 $this->Aws->registerStreamWrapper();
                 if(file_exists('s3://'.$srcBucket.'/'.$srcKey)){
