@@ -243,10 +243,12 @@ class CleanupShell extends Shell {
                 if(!empty($version['host'])){
 
                     // Get the Bucket name and Key object
-                    $host_string = str_replace(array('s3://','http://'),'',$version['host']);
+                    /*$host_string = str_replace(array('s3://','http://'),'',$version['host']);
                     $string_parts = explode('.',$host_string);
 
-                    $bucket = $string_parts[0].'.fordela.com';
+                    $bucket = $string_parts[0].'.fordela.com';*/
+                    $urlInfo = parse_url($version['host']);
+                    $bucket = $urlInfo['host'];
 
                     // ISM files from ss-media
                     if(strpos($version['filename'],'_MBR_') !== false && $version['ext'] == strtolower('mp4')){
