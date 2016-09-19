@@ -74,11 +74,11 @@ class FfmpegShell extends Shell {
 			die;
 		}
 		$this->out('File: '.$video['Video']['archive'].' - Size: '.$video['Video']['filesize']);
+
 		// Determine bucket
-		$pathinfo = pathinfo($video['Video']['location']);
-		$pathinfo['dirname'] = str_replace('s3://', '', $pathinfo['dirname']);
-		$parts = explode('.',$pathinfo['dirname']);
-		$bucket = ($parts[0] == 'archive' || $parts[0] == 'archive-dev') ? VMS_ARCHIVE : VMS_MEDIA;
+		$url = parse_url($video['Video']['location']);
+		$bucket = $url['host'];
+
 		$video_file = TMP.'uploads'.DS.$video['Video']['client_id'].DS.'videos'.DS.$video['Video']['archive'];
 		if(!file_exists($video_file)){
 			$this->out('File not present, pulling from S3');
