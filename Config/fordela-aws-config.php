@@ -3,8 +3,8 @@
   'services' => array(
       'default_settings' => array(
           'params' => array(
-              'key'    => 'AKIAI5Q4O7K47J7FXCEA',
-              'secret' => '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',
+              'key'    => 'AKIAIS6EDGLXIW7J23SA',
+              'secret' => '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',
               'region' => 'us-west-2'
           )
       ),
@@ -19,7 +19,7 @@
           'extends' => 'cloudfront',
           'params'  => array(
               'private_key' => APP.'Config'.DS.'cloudfront-private-key.pem',
-              'key_pair_id' => 'APKAJS3IDLJPXTWIFK3A'
+              'key_pair_id' => 'APKAJERUBIT6YAVYSQGQ'
           )
       )
   )
