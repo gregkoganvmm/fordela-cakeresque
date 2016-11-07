@@ -406,7 +406,11 @@ class User extends AppModel
 		
  		foreach ($data['User'] as $user) 
  		{
-			$exists = false;
+			if (empty($user['username']) ) {
+                Continue; // skip because this isn't an email
+            }
+
+            $exists = false;
 			$error = false;
 			$existingUser = false;
 
