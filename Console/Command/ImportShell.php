@@ -25,7 +25,8 @@ class ImportShell extends Shell {
 		$this->log($messages,'imported_customers');
 		$this->log('Import complete - Sending notification','imported_customers');
 
-		$jobId = end(array_values($this->args));
+        $arrValues = array_values($this->args);
+		$jobId = end($arrValues);
 		$this->status = array('status'=>'Finished','description'=>'Importing users complete');
 		$this->JobQueue->updateJob($jobId,$this->status); 
 
