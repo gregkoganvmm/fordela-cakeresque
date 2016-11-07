@@ -40,7 +40,7 @@ class BandwidthStatsTask extends Shell {
         }
 
         $http = new HttpSocket();
-        $http->configAuth('Digest', 'MDP7E8VDYN99H7E3BW4ECA9HBD2R1P', 'w0eyh72s');
+        $http->configAuth('Digest', 'IF2025ACZKKYD3V0B5RMH5VCI8Z0RK', 'n7lb3vp2');
 
         $servers = array(
             '8e4203d8-2ae8-4f88-a342-8e254bc815a3', //S3 ARCHIVE
