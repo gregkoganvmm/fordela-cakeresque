@@ -61,7 +61,11 @@ div.actions2 ul li { margin: 0 5px; }
 			if(!empty($jobQueue['JobQueue']['params'])){
 				$params = unserialize($jobQueue['JobQueue']['params']);
 				foreach($params as $i =>$param){
-					echo ($i+1).') '. h($param).' </br>'; 
+					if (is_array($param)) {
+						echo ($i+1).') Array </br>';
+					} else {
+						echo ($i+1).') '. h($param).' </br>';
+					}
 				}
 			}
 		?>&nbsp;</td>
