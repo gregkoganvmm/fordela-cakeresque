@@ -419,6 +419,10 @@ class User extends AppModel
  			$User = $this->findByUsername($user['username']);
  			if($User){
  				$membership = $this->Membership->find('first',array('conditions'=>array('Membership.user_id'=>$User['User']['id'],'Membership.client_id'=>$client_id), 'recursive'=>-1));
+                if (!$membership) {
+                    $membership_id = $this->addToClient($User['User']['id'],$client_id);
+                    $membership = $this->Membership->find('first',array('conditions'=>array('Membership.user_id'=>$User['User']['id'],'Membership.client_id'=>$client_id), 'recursive'=>-1));
+                }
  			}
 			$username = $user['username'];
 			
