@@ -71,8 +71,9 @@ class HlsShell extends Shell
                     fclose($stream);
                 }
                 if(!$isMaster) {
-                    // Bitrate version manifest
-                    $output = str_replace('https://'.$subdomain.'.fordela.com','http://'.$domain_url,$output);
+                    // If custom domain is visiontrailervault set to https
+                    $protocol = ($domain['Domain']['sld'] == 'visiontrailervault') ? 'https' : 'http';
+                    $output = str_replace('https://'.$subdomain.'.fordela.com',$protocol.'://'.$domain_url,$output);
                     file_put_contents($info['dirname'].'/'.$info['filename'].'_'.$domain_url.'.m3u8', $output);
                     $this->out('done');
                 } else {
