@@ -62,7 +62,7 @@ class UgcShell extends Shell {
         //Drupal expects: reference, status, source
         $notification = array(
             //'source'=>'http://hdprogressive.3dvisionlive.com/ugc/'.$version, //TODO: Is this correct?
-            'source'=>'http://www.3dvisionlive.com/sites/default/files/ugc/free/'.$version,
+            'source'=>'https://www.3dvisionlive.com/sites/default/files/ugc/free/'.$version,
             'status'=> 'Finished',
             'reference'=>$info['filename']
         );
@@ -72,7 +72,7 @@ class UgcShell extends Shell {
         $this->log($notification,'postLog');
         $http = new HttpSocket();
         // Temporary change to http from https because of expired SSL certificate
-        $r = $http->post('http://www.3dvisionlive.com/fordela_encoder/notification', $notification);
+        $r = $http->post('https://www.3dvisionlive.com/fordela_encoder/notification', $notification);
         $this->log($r,'postLog');
 
         //Mark Job finished
@@ -170,7 +170,7 @@ class UgcShell extends Shell {
     protected function downloadFile ($srcFile)
     {
         //URL path always the same except for node_id named mp4
-        $url = 'http://www.3dvisionlive.com/sites/default/files/ugc/free/'.$srcFile;
+        $url = 'https://www.3dvisionlive.com/sites/default/files/ugc/free/'.$srcFile;
         $path = TMP .'uploads'.DS.'ugc'.DS.$srcFile;
 
 
