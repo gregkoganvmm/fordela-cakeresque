@@ -37,7 +37,8 @@ class InviteShell extends Shell {
         $HttpSocket = new HttpSocket();
         $data = array();
         //Will be 'https://services.fordela.com/api/invite/send/'.$playlist_id.'/'.$mail_id
-        $results = $HttpSocket->post('http://slimapi.loc/api/invite/send/'.$playlist_id.'/'.$mail_id, $data);
+        //$results = $HttpSocket->post('http://slimapi.loc/api/invite/send/'.$playlist_id.'/'.$mail_id, $data);
+        $results = $HttpSocket->post('https://services.fordela.com/api/invite/send/'.$playlist_id.'/'.$mail_id, $data);
         $this->log($results, 'invites');
 
 
