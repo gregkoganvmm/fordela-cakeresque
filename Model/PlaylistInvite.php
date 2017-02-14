@@ -44,7 +44,7 @@ class PlaylistInvite extends AppModel
      * @var array
      */
     public $actsAs = [
-        'Search.Search',
+        //'Search.Search',
         'Containable'
     ];
 
