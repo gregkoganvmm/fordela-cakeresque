@@ -156,7 +156,9 @@ class FileToS3Shell extends Shell {
         $newfilename = $this->cleanFilename($filename);
         // Delete new filename before running PHP rename to clear any statcache
         @unlink(TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$newfilename);
-        rename(TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$filename,TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$newfilename);
+        if ($newfilename <> $filename) {
+            rename(TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$filename,TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$newfilename);
+        }
         if (!file_exists(TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$newfilename)) {
             $this->log('File is not there!','dropbox');
         }
