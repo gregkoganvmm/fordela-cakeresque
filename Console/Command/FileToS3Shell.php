@@ -146,6 +146,7 @@ class FileToS3Shell extends Shell {
         $filename = $this->args[3];
         $transcode = ($this->args[4] == 1) ? 1 : 0;
         $jobId = end($this->args);
+        $this->log($this->args,'dropbox');
         $this->_downloadFromDropbox($client_id,$url,$filename);
         $this->log('Download from dropbox complete','dropbox');
         //clean and rename filename if necessary
