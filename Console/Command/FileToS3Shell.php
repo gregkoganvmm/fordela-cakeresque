@@ -147,16 +147,16 @@ class FileToS3Shell extends Shell {
         $transcode = ($this->args[4] == 1) ? 1 : 0;
         $jobId = end($this->args);
         $this->_downloadFromDropbox($client_id,$url,$filename);
-        $this->log('Download from dropbox complete','dropbox');
+        if (!file_exists(TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$filename)) {
+            $this->log('File failed to download!','dropbox');
+        } else {
+            $this->log('Download from dropbox complete','dropbox');
+        }
         //clean and rename filename if necessary
         $newfilename = $this->cleanFilename($filename);
         // Delete new filename before running PHP rename to clear any statcache
         @unlink(TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$newfilename);
-        //rename(TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$filename,TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$newfilename);
-        if (!rename(TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$filename,TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$newfilename)) {
-            $error = error_get_last();
-            $this->log($error,'dropbox');
-        }
+        rename(TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$filename,TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$newfilename);
         if (!file_exists(TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$newfilename)) {
             $this->log('File is not there!','dropbox');
         }
