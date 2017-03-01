@@ -154,9 +154,9 @@ class FileToS3Shell extends Shell {
         }
         //clean and rename filename if necessary
         $newfilename = $this->cleanFilename($filename);
-        // Delete new filename before running PHP rename to clear any statcache
-        @unlink(TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$newfilename);
+        // Delete new filename before running PHP rename to clear "statcache"
         if ($newfilename <> $filename) {
+            @unlink(TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$newfilename);
             rename(TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$filename,TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$newfilename);
         }
         if (!file_exists(TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$newfilename)) {
