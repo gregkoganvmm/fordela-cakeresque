@@ -152,7 +152,14 @@ class FileToS3Shell extends Shell {
         $newfilename = $this->cleanFilename($filename);
         // Delete new filename before running PHP rename to clear any statcache
         @unlink(TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$newfilename);
-        rename(TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$filename,TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$newfilename);
+        //rename(TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$filename,TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$newfilename);
+        if (!rename(TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$filename,TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$newfilename)) {
+            $error = error_get_last();
+            $this->log($error,'dropbox');
+        }
+        if (!file_exists(TMP.'uploads'.DS.$client_id.DS.'videos'.DS.$newfilename)) {
+            $this->log('File is not there!','dropbox');
+        }
         $this->_processVideo($client_id,$user_id,$newfilename,$transcode,'Dropbox');
         $this->log('Post back to VMS','dropbox');
         $this->status = array(
@@ -198,7 +205,6 @@ class FileToS3Shell extends Shell {
             'transcode' => $transcode,
             'uploader' => $uploader
         );
-        $this->log($data,'dropbox');
         $this->http = new HttpSocket();
         return $this->http->post(ENVIRONMENT_APP_URL.'/videos/notify_jobqueue', $data);
     }
