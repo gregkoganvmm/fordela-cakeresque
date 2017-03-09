@@ -9,6 +9,8 @@ Configure::write('CakeResque.Worker.workers', 1); // default number of workers i
 // TODO: Is there an easy way to find out when a Job fails or does not complete?
 Configure::write('CakeResque.Job.track', true);
 
+Configure::write('CakeResque.Scheduler.enabled', true);
+
 // Configure writing logs to MongoDB or use the default to logs/resque.log
 Configure::write('CakeResque.Log.handler','MongoDB');
 Configure::write('CakeResque.Log.target',MONGO_DATABASE);
@@ -17,6 +19,7 @@ Configure::write('CakeResque.Log.target',MONGO_DATABASE);
 // Console/cake CakeResque.CakeResque start --queue default --workers 10
 // Console/cake CakeResque.CakeResque start --queue region --workers 10
 // Console/cake CakeResque.CakeResque start --queue file_mover --workers 5
+// Console/cake CakeResque.CakeResque startscheduler
 
 // Stop all workers
 // Console/cake CakeResque.CakeResque stop --all

@@ -162,4 +162,49 @@ class AppController extends Controller {
         $redisJobId = CakeResque::enqueue($queue,$shell.'Shell',$params);
         //debug($redisJobId);die;
     }
+
+    /**
+     * Makes a Job For the Resque Server
+     * Saves a copy to the JobQueue table for UI
+     *
+     * @param String $queue the name of the queue to add the job
+     * @param String $shell the name of the shell script that will process the job
+     * @param String $function the name of the function in the shell script to call
+     * @param Array $params any params the function needs
+     *
+     **/
+    function _queueAt($time, $queue, $shell, $function, $params = array(), $jobId = null)
+    {
+        $this->JobQueue = ClassRegistry::init('JobQueue');
+        //ad the shell function to run to the beginning of the params array
+        array_unshift($params,$function);
+
+        // Create database record
+        $job = array(
+            'queue'=>$queue,
+            'type'=>$shell.'Shell',
+            'function'=>$function,
+            'params'=>serialize($params),
+        );
+
+        if (empty($jobId)) {
+            // New Job
+            $this->JobQueue->create($job);
+            $this->JobQueue->save();
+            $jobId = $this->JobQueue->id;
+        } else {
+            // Reset Job
+            $this->JobQueue->id;
+            $job['JobQueue']['status'] = 'Reset';
+            $job['JobQueue']['description'] = '';
+            $job['JobQueue']['finished'] = '';
+            $this->JobQueue->save($job['JobQueue']);
+        }
+
+        array_push($params,$jobId);
+
+        // Send job to JobQueue (Resque) server
+        $redisJobId = CakeResque::enqueueAt(new DateTime($time), $queue,$shell.'Shell',$params);
+        //debug($redisJobId);die;
+    }
 }
