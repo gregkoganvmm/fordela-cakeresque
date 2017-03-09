@@ -12,9 +12,11 @@ class InviteShell extends Shell {
 
     var $uses = array(
         'JobQueue',
+        'Membership',
         'Playlist',
         'PlaylistItem',
         'PlaylistInvite',
+        'PlaylistMember',
         'Video',
         'Audio',
     );
@@ -30,6 +32,51 @@ class InviteShell extends Shell {
     {
         $playlist_id = $this->args[0];
         $mail_id = $this->args[1];
+        $isTest = (!empty($this->args[2]) && $this->args[2] == true) ? true : false;
+
+        $users = $this->PlaylistInvite->find('all',array(
+            'conditions' => array('mail_id' => $mail_id),
+            'contain' => array()
+        ));
+        //$this->log($users,'pm');
+
+        $userIDs = Hash::extract($users, '{n}.PlaylistInvite.user_id');
+        $memberships = $this->Membership->find('list',array(
+            'conditions' => array(
+                'client_id' => $users[0]['PlaylistInvite']['client_id'],
+                'user_id' => $userIDs
+            ),
+            'fields' => array('user_id','id')
+        ));
+        //$this->log($memberships,'pm');
+
+        // SETUP Playlist Membership data and lookup
+        // @see http://nickology.com/2012/07/03/php-faster-array-lookup-than-using-in_array/
+        $playlistMembersTemp = $this->PlaylistMember->find('list', [
+            'conditions' => ['PlaylistMember.playlist_id' => $playlist_id],
+            'fields' => ['PlaylistMember.user_id']
+        ]);
+
+        $playlistMembers = [];
+        foreach (array_values($playlistMembersTemp) as $member) {
+            $playlistMembers[$member] = 1;
+        }
+
+        foreach($users as $user) {
+            // Create PlaylistMember records for any user that does not already have one
+            if (!$isTest && !isset($playlistMembers[$user['PlaylistInvite']['user_id']])) {
+                $this->PlaylistMember->unbindModel(['belongsTo' => ['Playlist', 'Membership']]);
+                $this->PlaylistMember->create();
+                $this->PlaylistMember->set([
+                        'member_id' => $memberships[$user['PlaylistInvite']['user_id']],
+                        'playlist_id' => $playlist_id,
+                        'user_id' => $user['PlaylistInvite']['user_id']
+                    ]
+                );
+                $this->PlaylistMember->save();
+            }
+        }
+
 
         $HttpSocket = new HttpSocket();
         $data = array();
@@ -39,7 +86,8 @@ class InviteShell extends Shell {
 
         $this->status['description'] = 'Emails sent for playlist_id: '.$playlist_id.' and mail_id: '.$mail_id;
         $this->status['status'] = 'Finished';
-        $jobId = end($this->args);
+        //$jobId = end($this->args);
+        $jobId = $this->args[3]; //end($this->args);
         $this->JobQueue->updateJob($jobId,$this->status);
 
         //TODO: Populate metadata (VideoIDs) of items being sent
