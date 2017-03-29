@@ -314,7 +314,16 @@ class CleanupShell extends Shell {
 
         // Check and try one more time to delete the Source just in case there was no Source version record
         if(!isset($srcMultipleRecords['VideoVersion']['id'])){ // Skip if set for 2nd time
-            if(!empty($video['Video']['location']) && !empty($video['Video']['archive_dir'])){
+
+            //Account for TRIMMED records by checking and verifying one more time the Source is not used in another record!
+            $secondSrcCheck = $this->VideoVersion->find('list',array(
+                'name' => 'Source',
+                'filename' => $video['Video']['archive'],
+                'dir' => $video['Video']['archive_dir'], // adding to check within same client
+                'video_id <>' => $video['Video']['id']
+            ));
+
+            if(!$secondSrcCheck &&!empty($video['Video']['location']) && !empty($video['Video']['archive_dir'])){
                 $locArr = parse_url($video['Video']['location']);
                 $srcBucket = $locArr['host'];
                 $srcKey = $video['Video']['archive_dir'].$video['Video']['archive'];
